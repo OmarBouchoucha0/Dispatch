@@ -3,10 +3,11 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { Editor } from "@/components/editor/editor"
 
 export default function Home() {
   return (
-    <ResizablePanelGroup orientation="horizontal">
+    <ResizablePanelGroup orientation="horizontal" className="bg-sidebar">
 
       <ResizablePanel
         defaultSize={200}
@@ -15,13 +16,13 @@ export default function Home() {
         collapsedSize={0}
         className="bg-sidebar"
       >
-        File Explorer
+        <h1 className="p-2 text-xs">Explorer</h1>
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel
         minSize={500}
       >
-        Editor
+        <Editor />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

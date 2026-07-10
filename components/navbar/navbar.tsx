@@ -6,13 +6,13 @@ export function NavBar() {
   return (
     <div className="w-full flex items-center justify-between p-1 bg-sidebar border-b border-border gap-2">
       <div className="flex items-center gap-0">
-        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" className="h-8 px-2 text-s text-muted-foreground hover:text-foreground">
           File
         </Button>
-        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" className="h-8 px-2 text-s text-muted-foreground hover:text-foreground">
           Edit
         </Button>
-        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" className="h-8 px-2 text-s text-muted-foreground hover:text-foreground">
           View
         </Button>
       </div>
