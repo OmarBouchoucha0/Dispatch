@@ -3,8 +3,6 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider"
-import { SideBar } from "@/components/sidebar/sidebar"
-import { NavBar } from "@/components/navbar/navbar"
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
@@ -42,15 +40,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex flex-col h-screen">
-            <NavBar />
-            <div className="flex flex-1 overflow-hidden">
-              <SideBar />
-              <div className="flex-1 overflow-auto">
-                {children}
-              </div>
-            </div>
-          </div>
+          {children}
         </ThemeProvider>
       </body>
     </html>
