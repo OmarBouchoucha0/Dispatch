@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 export default function Login() {
   return (
 
-    <div className="relative flex items-center justify-center h-full bg-background overflow-hidden">
+    <div className="relative flex items-center justify-center h-screen bg-background overflow-hidden">
       <div
         className="absolute inset-0"
         style={{

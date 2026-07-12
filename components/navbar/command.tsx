@@ -21,6 +21,7 @@ export function CommandPalette() {
         onClick={() => setOpen(true)}
         variant="outline"
         className="w-full justify-start text-muted-foreground"
+        size="sm"
       >
         Command Palette
       </Button>

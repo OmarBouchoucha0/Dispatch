@@ -1,5 +1,4 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
 import { CodeEditor } from "@/components/editor/monaco"
 
 const config1 = {
@@ -7,28 +6,6 @@ const config1 = {
   age: 28,
   is_active: true,
   skills: ["JavaScript", "Python", "JSON"],
-  contact: {
-    email: "user@example.com",
-    city: "Tunis",
-  },
-}
-
-const config2 = {
-  username: "coder44",
-  age: 40,
-  is_active: true,
-  skills: ["JavaScript", "c", "JSON"],
-  contact: {
-    email: "user@example.com",
-    city: "Tunis",
-  },
-}
-
-const config3 = {
-  username: "adadd",
-  age: 99,
-  is_active: true,
-  skills: ["JavaScript", "c", "JSON"],
   contact: {
     email: "user@example.com",
     city: "Tunis",
@@ -52,42 +29,6 @@ export function TabsLine() {
         "
         >
           config1.json
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="config2"
-          className="
-        rounded-none
-        px-6
-        data-[state=active]:!bg-background
-        data-[state=active]:!text-foreground
-      "
-        >
-          config2.json
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="config3"
-          className="
-        rounded-none
-        px-6
-        data-[state=active]:!bg-background
-        data-[state=active]:!text-foreground
-      "
-        >
-          config3.json
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="config4"
-          className="
-        rounded-none
-        px-6
-        data-[state=active]:!bg-background
-        data-[state=active]:!text-foreground
-      "
-        >
-          config4.json
         </TabsTrigger>
 
       </TabsList>

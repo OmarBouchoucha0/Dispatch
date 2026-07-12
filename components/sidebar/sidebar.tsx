@@ -1,7 +1,5 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import { Files, History, Settings, User } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname } from "next/navigation"
 import {
