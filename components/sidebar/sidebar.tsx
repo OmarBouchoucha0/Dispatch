@@ -7,12 +7,24 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 
 export function SideBar() {
   const router = useRouter()
   const pathname = usePathname()
   return (
-    <div className="flex flex-col items-center gap-1 p-1 h-full bg-sidebar border-r border-border">
+    <div className="flex flex-col items-center gap-1  h-full bg-sidebar border-r border-border">
 
       <Tooltip >
         <TooltipTrigger asChild>
@@ -43,25 +55,49 @@ export function SideBar() {
       </Tooltip>
 
       <div className="mt-auto flex flex-col items-center gap-2">
-        <Tooltip >
-          <TooltipTrigger asChild>
+        <Dialog>
+          <DialogTrigger asChild>
             <SidebarIcon icon={User} />
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>Account</p>
-          </TooltipContent >
-        </Tooltip>
+          </DialogTrigger>
 
-        <Tooltip >
-          <TooltipTrigger asChild>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Account</DialogTitle>
+              <DialogDescription>
+                Manage your account details here.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {/*  */}
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
+        <Dialog>
+          <DialogTrigger asChild>
             <SidebarIcon icon={Settings} />
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>Settings</p>
-          </TooltipContent>
-        </Tooltip>
+          </DialogTrigger>
 
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Settings</DialogTitle>
+              <DialogDescription>
+                Adjust your editor preferences.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {/*  */}
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
+    </div >
   )
 }

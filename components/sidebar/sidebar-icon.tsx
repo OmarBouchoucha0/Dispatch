@@ -21,7 +21,8 @@ export const SidebarIcon = React.forwardRef<
     <Button
       ref={ref}
       variant="ghost"
-      className={`h-10 w-10 ${className ?? ""}`}
+      className={`h-11 w-11 border-l-3 rounded-none p-6 ${active ? "border-l-primary" : "border-l-transparent"
+        } ${className ?? ""}`}
       onMouseEnter={(e) => {
         setHovered(true)
         props.onMouseEnter?.(e)
@@ -37,7 +38,7 @@ export const SidebarIcon = React.forwardRef<
         strokeWidth={1.5}
         style={{
           color: isLit
-            ? "var(--foreground)"
+            ? "var(--primary-foreground)"
             : "var(--muted-foreground)",
         }}
       />

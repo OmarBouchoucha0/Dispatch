@@ -93,7 +93,7 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
       options={{
         minimap: { enabled: false },
         fontSize: 14,
-        fontFamily: "JetBrains Mono, Consolas, monospace",
+        fontFamily: "JetBrains Mono",
         wordWrap: "on",
         automaticLayout: true,
         scrollBeyondLastLine: false,
