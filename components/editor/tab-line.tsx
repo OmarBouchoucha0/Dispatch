@@ -1,5 +1,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
+import { CodeEditor } from "@/components/editor/monaco"
 
 const config1 = {
   username: "coder123",
@@ -36,16 +37,19 @@ const config3 = {
 
 export function TabsLine() {
   return (
-    <Tabs defaultValue="config1" className="gap-0">
-      <TabsList className=" rounded-none bg-muted pt-0 px-0">
+    <Tabs defaultValue="config1" className="flex flex-col gap-0 h-full">
+      <TabsList className=" rounded-none bg-muted p-0  shrink-0">
         <TabsTrigger
           value="config1"
           className="
         rounded-none
         px-6
+        border-0
         data-[state=active]:!bg-background
         data-[state=active]:!text-foreground
-      "
+        data-[state=active]:!border-0
+        focus-visible:ring-0
+        "
         >
           config1.json
         </TabsTrigger>
@@ -74,36 +78,25 @@ export function TabsLine() {
           config3.json
         </TabsTrigger>
 
+        <TabsTrigger
+          value="config4"
+          className="
+        rounded-none
+        px-6
+        data-[state=active]:!bg-background
+        data-[state=active]:!text-foreground
+      "
+        >
+          config4.json
+        </TabsTrigger>
+
       </TabsList>
 
-      <TabsContent value="config1" className="mt-0 ">
-        <Card className="rounded-none bg-background h-screen ">
-          <CardContent className="text-sm text-muted-foreground">
-            <pre className="whitespace-pre-wrap">
-              {JSON.stringify(config1, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="config2" className="mt-0">
-        <Card className="rounded-none bg-background h-screen">
-          <CardContent className="text-sm text-muted-foreground">
-            <pre className="whitespace-pre-wrap">
-              {JSON.stringify(config2, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="config3" className="mt-0 ">
-        <Card className="rounded-none bg-background h-screen ">
-          <CardContent className="text-sm text-muted-foreground">
-            <pre className="whitespace-pre-wrap">
-              {JSON.stringify(config3, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
+      <TabsContent value="config1" className="mt-0 flex-1 min-h-0 h-full overflow-hidden">
+        <CodeEditor
+          language="json"
+          value={JSON.stringify(config1, null, 2)}
+        />
       </TabsContent>
     </Tabs >
   )
