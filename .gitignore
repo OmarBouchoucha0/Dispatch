@@ -90,5 +90,7 @@ temp/
 # Air live reload
 .air.toml
 
-# Migration tool temporary files
+# Database local files
+*.sqlite
+*.sqlite3
 *.db
