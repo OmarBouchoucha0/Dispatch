@@ -5,7 +5,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 import { Editor } from "@/components/editor/editor"
-import { Explorer } from "@/components/fileExlorer/explorer"
+import { Explorer, FileNode } from "@/components/fileExlorer/explorer"
 import { useState } from "react"
 
 

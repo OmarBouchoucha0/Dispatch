@@ -66,7 +66,7 @@ export function DataTable<TData, TValue>({
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, [rowHeight])
 
   const table = useReactTable({
     data,
