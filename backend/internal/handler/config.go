@@ -1,32 +1,12 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
-	"github.com/go-chi/chi/v5"
 )
-
-type contextKey string
-
-const configKey contextKey = "config"
-
-func ConfigCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		deviceID := chi.URLParam(r, "deviceID")
-		config, err := db.GetConfigByDeviceID(ctx, deviceID)
-		if err != nil {
-			http.Error(w, http.StatusText(404), 404)
-			return
-		}
-		ctx = context.WithValue(ctx, configKey, config)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
 
 func ListConfigs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
