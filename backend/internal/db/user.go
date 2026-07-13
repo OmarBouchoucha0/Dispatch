@@ -72,13 +72,13 @@ func AddUser(ctx context.Context, user User) error {
 	_, err := Pool.Exec(
 		ctx,
 		`
-		INSERT INTO user (
+		INSERT INTO users (
 			first_name,
 			last_name,
 			email,
 			password_hash
 		)
-		VALUES ($1, $2, $3)
+		VALUES ($1, $2, $3, $4)
 		`,
 		user.FirstName,
 		user.LastName,

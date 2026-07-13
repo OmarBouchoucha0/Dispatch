@@ -48,6 +48,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info("config Listed", "configs", configs)
+	w.WriteHeader(http.StatusOK)
 }
 
 type CreateUserRequest struct {
@@ -86,9 +87,10 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = db.AddUser(ctx, user)
 	if err != nil {
-		slog.Error("coudnt add config", "error", err)
-		http.Error(w, http.StatusText(422), 422)
+		slog.Error("coudnt add user", "error", err)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	slog.Info("config added")
+	slog.Info("user added")
+	w.WriteHeader(http.StatusCreated)
 }

@@ -60,5 +60,10 @@ func mount() http.Handler {
 		r.Get("/", handler.ListConfigs)
 		r.Post("/", handler.AddConfig)
 	})
+
+	r.Route("/user", func(r chi.Router) {
+		r.Get("/", handler.ListUsers)
+		r.Post("/", handler.AddUser)
+	})
 	return r
 }
