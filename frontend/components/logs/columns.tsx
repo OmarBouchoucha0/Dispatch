@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type Config = {
+export type Config = {
   id: string
   deviceId: number
   email: string

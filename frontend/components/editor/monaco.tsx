@@ -25,7 +25,7 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
     })
 
     const commandPaletteAction = editor.getAction("editor.action.quickCommand")
-    commandPaletteAction?.dispose?.()
+      ; (commandPaletteAction as { dispose?: () => void } | null)?.dispose?.()
 
     editor.addCommand(monacoInstance.KeyCode.F1, () => { })
     editor.addCommand(
