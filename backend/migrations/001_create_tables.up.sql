@@ -43,7 +43,11 @@ CREATE TABLE configs (
 CREATE TABLE logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+  
+    Action VARCHAR(50) NOT NULL DEFAULT 'Created'
+        CHECK (Action IN ('Created', 'Updated','Deleted')),
+
+    Created_At TIMESTAMP NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_log_user
         FOREIGN KEY (user_id)
@@ -56,5 +60,5 @@ CREATE TABLE logs (
 CREATE INDEX idx_configs_user_id
 ON configs(user_id);
 
-CREATE INDEX idx_logs_user_timestamp
-ON logs(user_id, timestamp DESC);
+CREATE INDEX idx_logs_created_at
+ON logs(user_id, Created_at DESC);
