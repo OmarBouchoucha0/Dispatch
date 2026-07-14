@@ -174,8 +174,12 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		Role:         "user",
 	}
 	_, err = db.GetUserByEmail(ctx, user.Email)
-	if err != nil && !errors.Is(err, db.ErrUserNotFound) {
+	if err == nil {
 		http.Error(w, "email already used", http.StatusUnauthorized)
+		return
+	}
+	if !errors.Is(err, db.ErrUserNotFound) {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	err = db.AddUser(ctx, user)

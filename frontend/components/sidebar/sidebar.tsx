@@ -1,5 +1,5 @@
 "use client"
-import { Files, History, Settings, User } from "lucide-react"
+import { Files, History, Settings, User, LogOut } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname } from "next/navigation"
 import {
@@ -17,12 +17,37 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 export function SideBar() {
   const router = useRouter()
   const pathname = usePathname()
+
+  async function handleLogout(e: React.FormEvent) {
+    e.preventDefault()
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/user/logout`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
+
+      if (!res.ok) {
+        toast.error("Logout failed")
+        return
+      }
+
+      router.push("/")
+
+    } catch (err) {
+      toast.error("Server error")
+    }
+  }
   return (
-    <div className="flex flex-col items-center gap-1  h-full bg-sidebar border-r border-border">
+    <div className="flex flex-col items-center gap-0  h-full bg-sidebar border-r border-border">
 
       <Tooltip >
         <TooltipTrigger asChild>
@@ -52,7 +77,7 @@ export function SideBar() {
         </TooltipContent >
       </Tooltip>
 
-      <div className="mt-auto flex flex-col items-center gap-2">
+      <div className="mt-auto flex flex-col items-center gap-0">
         <Dialog>
           <DialogTrigger asChild>
             <SidebarIcon icon={User} />
@@ -95,6 +120,8 @@ export function SideBar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <SidebarIcon icon={LogOut} onClick={handleLogout} />
       </div>
     </div >
   )
