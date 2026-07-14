@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -84,6 +85,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		req.LastName,
 		req.Email,
 		pHash,
+		"user",
 	}
 	err = db.AddUser(ctx, user)
 	if err != nil {
@@ -93,4 +95,55 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 	slog.Info("user added")
 	w.WriteHeader(http.StatusCreated)
+}
+
+type LoginRequest struct {
+	Email    string "json:email"
+	Password string "json:password"
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req LoginRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+	user, err := db.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		slog.Error("email not found", "error", err)
+		http.Error(w, "invalid email or password", http.StatusUnauthorized)
+		return
+	}
+	if !checkPassword(req.Password, user.PasswordHash) {
+		slog.Error("password not found")
+		http.Error(w, "invalid email or password", http.StatusUnauthorized)
+		return
+	}
+	token, err := auth.CreateToken(user.ID, user.Role)
+	if err != nil {
+		slog.Error("token creation", "error", err)
+		http.Error(
+			w,
+			"token creation",
+			http.StatusInternalServerError,
+		)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "login_token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   86400,
+	})
+
+	w.WriteHeader(http.StatusOK)
+	slog.Info("login succesful")
 }

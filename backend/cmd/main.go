@@ -7,10 +7,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 )
 
 func main() {
@@ -49,21 +51,43 @@ func mount() http.Handler {
 	r.Use(middleware.ClientIPFromRemoteAddr)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{
+			"http://localhost:3000",
+		},
+		AllowedMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"OPTIONS",
+		},
+		AllowedHeaders: []string{
+			"Accept",
+			"Content-Type",
+			"Authorization",
+		},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
+	r.Route("/user", func(r chi.Router) {
+		r.Post("/login", handler.Login)
+		r.Post("/", handler.AddUser) // public register
+
+		r.Group(func(r chi.Router) {
+			r.Use(auth.Middleware)
+			r.Get("/", handler.ListUsers)
+		})
 	})
 
 	r.Route("/config", func(r chi.Router) {
+		r.Use(auth.Middleware)
+
 		r.Get("/", handler.ListConfigs)
 		r.Post("/", handler.AddConfig)
-	})
-
-	r.Route("/user", func(r chi.Router) {
-		r.Get("/", handler.ListUsers)
-		r.Post("/", handler.AddUser)
 	})
 	return r
 }
