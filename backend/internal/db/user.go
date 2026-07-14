@@ -1,6 +1,11 @@
 package db
 
-import "context"
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx"
+)
 
 type User struct {
 	ID           string
@@ -19,7 +24,7 @@ func GetUserByUserID(ctx context.Context, userID string) (*User, error) {
 		`
         SELECT id, first_name, last_name, email
         FROM users
-        WHERE user_id = $1
+        WHERE id = $1
         `,
 		userID,
 	).Scan(
@@ -34,6 +39,8 @@ func GetUserByUserID(ctx context.Context, userID string) (*User, error) {
 
 	return &user, nil
 }
+
+var ErrUserNotFound = errors.New("user not found")
 
 func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
@@ -55,6 +62,10 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 		&user.Role,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+
 		return nil, err
 	}
 

@@ -8,11 +8,11 @@ import (
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 )
 
-func ListConfigs(w http.ResponseWriter, r *http.Request) {
+func ListDevices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	configs, err := db.GetConfigs(ctx)
+	configs, err := db.GetDevices(ctx)
 	if err != nil {
-		slog.Error("coudnt get configs", "error", err)
+		slog.Error("coudnt get devices", "error", err)
 		http.Error(w, http.StatusText(422), 422)
 		return
 	}
@@ -28,19 +28,15 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
-type CreateConfigRequest struct {
-	DeviceID string          `json:"device_id"`
-	UserID   string          `json:"user_id"`
-	Content  json.RawMessage `json:"content"`
+type CreateDeviceRequest struct {
+	Name string `json:"device_name"`
 }
 
-func AddConfig(w http.ResponseWriter, r *http.Request) {
+func AddDevice(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req CreateConfigRequest
+	var req CreateDeviceRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -48,15 +44,13 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
-	config := db.Config{
+	device := db.Device{
 		"1",
-		req.DeviceID,
-		req.UserID,
-		req.Content,
+		req.Name,
 	}
-	err = db.AddConfig(ctx, config)
+	err = db.AddDevice(ctx, device)
 	if err != nil {
-		slog.Error("coudnt add config", "error", err)
+		slog.Error("coudnt add device", "error", err)
 		http.Error(w, http.StatusText(422), 422)
 		return
 	}

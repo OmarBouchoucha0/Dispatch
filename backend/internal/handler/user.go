@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -48,8 +49,6 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	slog.Info("config Listed", "configs", configs)
-	w.WriteHeader(http.StatusOK)
 }
 
 type CreateUserRequest struct {
@@ -146,4 +145,54 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	slog.Info("login succesful")
+}
+
+type SignupRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+}
+
+func Signup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req CreateUserRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+	pHash, err := hashPassword(req.Password)
+	if err != nil {
+		slog.Error("password hashing", "error", err)
+		http.Error(
+			w,
+			http.StatusText(http.StatusInternalServerError),
+			http.StatusInternalServerError,
+		)
+		return
+	}
+	user := db.User{
+		"1",
+		req.FirstName,
+		req.LastName,
+		req.Email,
+		pHash,
+		"user",
+	}
+	_, err = db.GetUserByEmail(ctx, user.Email)
+	if err != nil && !errors.Is(err, db.ErrUserNotFound) {
+		http.Error(w, "email already used", http.StatusUnauthorized)
+		return
+	}
+	err = db.AddUser(ctx, user)
+	if err != nil {
+		slog.Error("coudnt add user", "error", err)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	slog.Info("user added")
+	w.WriteHeader(http.StatusCreated)
 }

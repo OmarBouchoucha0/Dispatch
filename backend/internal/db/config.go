@@ -20,7 +20,7 @@ func GetConfigByDeviceID(ctx context.Context, deviceID string) (*Config, error) 
 		`
         SELECT id, user_id, device_id, content
         FROM configs
-        WHERE device_id = $1
+        WHERE id = $1
         `,
 		deviceID,
 	).Scan(
