@@ -51,11 +51,11 @@ export function Signup({ onSwitch }: SignupProps) {
       )
 
       if (!res.ok) {
-        toast.error("Could not create account")
+        toast.error("email already in use")
         return
       }
       router.push("/files")
-    } catch (err) {
+    } catch {
       toast.error("Server error")
     } finally {
       setLoading(false)

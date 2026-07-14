@@ -54,7 +54,7 @@ export function Login({ onSwitch }: LoginProps) {
 
       router.push("/files")
 
-    } catch (err) {
+    } catch {
       toast.error("server error")
     } finally {
       setLoading(false)

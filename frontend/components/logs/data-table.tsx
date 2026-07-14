@@ -68,6 +68,7 @@ export function DataTable<TData, TValue>({
     return () => observer.disconnect()
   }, [rowHeight])
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
@@ -89,10 +90,10 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-1 min-h-0 flex-col gap-4">
 
       <Input
-        placeholder="Filter emails..."
-        value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+        placeholder="Filter users..."
+        value={(table.getColumn("UserName")?.getFilterValue() as string) ?? ""}
         onChange={(event) =>
-          table.getColumn("email")?.setFilterValue(event.target.value)
+          table.getColumn("UserName")?.setFilterValue(event.target.value)
         }
         className="max-w-sm shrink-0"
       />

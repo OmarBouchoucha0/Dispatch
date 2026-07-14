@@ -7,6 +7,8 @@ import {
 import { Editor } from "@/components/editor/editor"
 import { Explorer, FileNode } from "@/components/fileExlorer/explorer"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth/auth-provider"
 
 
 const mockTree: FileNode[] = [
@@ -31,6 +33,18 @@ const mockTree: FileNode[] = [
 
 export default function Home() {
   const [selectedPath, setSelectedPath] = useState<string>()
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    router.push("/")
+    return null
+  }
+
   return (
     <ResizablePanelGroup orientation="horizontal" className="bg-sidebar">
 

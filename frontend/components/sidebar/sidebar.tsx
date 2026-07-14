@@ -42,7 +42,7 @@ export function SideBar() {
 
       router.push("/")
 
-    } catch (err) {
+    } catch {
       toast.error("Server error")
     }
   }
