@@ -1,7 +1,32 @@
 "use client"
 
-import { useEffect } from "react"
-import Editor, { useMonaco, OnMount } from "@monaco-editor/react"
+import { useEffect, useState } from "react"
+import Editor, { OnMount, loader } from "@monaco-editor/react"
+
+// useMonaco from @monaco-editor/react has no .catch() on its cancelable promise
+// (from @monaco-editor/loader's makeCancelable). When the component unmounts
+// before Monaco finishes loading, the cleanup calls .cancel(), the promise rejects
+// with { type: "cancelation", msg: "operation is manually canceled" }, and the
+// unhandled rejection bubbles up as unhandledRejection. This wrapper handles it.
+function useSafeMonaco() {
+  const [monaco, setMonaco] = useState<Awaited<ReturnType<typeof loader.init>> | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const loading = loader.init()
+    loading.then((m) => {
+      if (!cancelled) setMonaco(m)
+    })
+    loading.catch((e) => {
+      if (e?.type !== "cancelation") {
+        console.error("Monaco initialization error:", e)
+      }
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  return monaco
+}
 
 type CodeEditorProps = {
   language: string
@@ -10,7 +35,7 @@ type CodeEditorProps = {
 }
 
 export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
-  const monaco = useMonaco()
+  const monaco = useSafeMonaco()
 
   const handleMount: OnMount = (editor, monacoInstance) => {
     editor.updateOptions({ contextmenu: false })

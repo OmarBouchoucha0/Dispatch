@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Login } from "@/components/auth/login"
 import { Signup } from "@/components/auth/signup"
+import { AuthRedirect } from "@/components/auth/auth-redirect"
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(true)
@@ -16,7 +17,7 @@ export default function Home() {
           backgroundSize: "24px 24px",
         }}
       />
-
+      <AuthRedirect />
       {showLogin ? (
         <Login onSwitch={() => setShowLogin(false)} />
       ) : (
