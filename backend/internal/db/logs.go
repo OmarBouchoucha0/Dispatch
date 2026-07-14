@@ -1,13 +1,16 @@
 package db
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type Log struct {
 	ID        string
 	UserID    string
 	DeviceID  string
 	Action    string
-	CreatedAt string
+	CreatedAt time.Time
 }
 
 func AddLog(ctx context.Context, log Log) error {
@@ -17,7 +20,7 @@ func AddLog(ctx context.Context, log Log) error {
 		INSERT INTO logs (
 			user_id,
 			device_id,
-			action,
+			action
 		)
 		VALUES ($1, $2, $3)
 		`,
@@ -36,7 +39,7 @@ func GetLogs(ctx context.Context) ([]Log, error) {
 		ctx,
 		`
         SELECT id, user_id, device_id, action, created_at
-        FROM log
+        FROM logs
         `,
 	)
 	if err != nil {

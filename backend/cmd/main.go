@@ -76,11 +76,13 @@ func mount() http.Handler {
 	r.Route("/user", func(r chi.Router) {
 		r.Post("/login", handler.Login)
 		r.Post("/signup", handler.Signup)
+		r.Get("/me", handler.Logout)
 
 		r.Group(func(r chi.Router) {
 			r.Use(auth.Middleware)
 			r.Get("/", handler.ListUsers)
 			r.Post("/", handler.AddUser)
+			r.Get("/logout", handler.Logout)
 		})
 	})
 

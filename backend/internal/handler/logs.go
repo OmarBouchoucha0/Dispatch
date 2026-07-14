@@ -46,7 +46,7 @@ func ListLogs(w http.ResponseWriter, r *http.Request) {
 			UserName:   user.FirstName,
 			DeviceName: device.Name,
 			Action:     log.Action,
-			CreatedAt:  log.CreatedAt,
+			CreatedAt:  log.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 

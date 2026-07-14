@@ -43,7 +43,7 @@ CREATE TABLE configs (
 CREATE TABLE logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-  
+    device_id UUID NOT NULL,
     Action VARCHAR(50) NOT NULL DEFAULT 'Created'
         CHECK (Action IN ('Created', 'Updated','Deleted')),
 
