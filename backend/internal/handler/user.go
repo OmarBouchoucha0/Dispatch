@@ -78,7 +78,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	user := db.User{
+	user := &db.User{
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Email:        req.Email,
@@ -146,13 +146,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	slog.Info("login succesful")
 }
 
-type SignupRequest struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-}
-
 func Signup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req CreateUserRequest
@@ -173,7 +166,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	user := db.User{
+	user := &db.User{
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Email:        req.Email,
@@ -231,13 +224,13 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 func Me(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := ctx.Value("userID").(string)
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
 	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	user, err := db.GetUserByID(ctx, userID)
+	user, err := db.GetUserByID(ctx, claims.UserID)
 	if err != nil {
 		slog.Error("get user", "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

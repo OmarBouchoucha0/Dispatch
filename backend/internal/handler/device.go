@@ -53,5 +53,5 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
-	slog.Info("config added")
+	slog.Info("device added")
 }

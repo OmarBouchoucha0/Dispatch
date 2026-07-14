@@ -22,7 +22,7 @@ func GetUserByID(ctx context.Context, userID string) (*User, error) {
 	err := Pool.QueryRow(
 		ctx,
 		`
-        SELECT id, first_name, last_name, email
+        SELECT id, first_name, last_name, email, password_hash, role
         FROM users
         WHERE id = $1
         `,
@@ -32,6 +32,8 @@ func GetUserByID(ctx context.Context, userID string) (*User, error) {
 		&user.FirstName,
 		&user.LastName,
 		&user.Email,
+		&user.PasswordHash,
+		&user.Role,
 	)
 	if err != nil {
 		return nil, err
@@ -104,8 +106,8 @@ func GetUsers(ctx context.Context) ([]User, error) {
 	return users, nil
 }
 
-func AddUser(ctx context.Context, user User) error {
-	_, err := Pool.Exec(
+func AddUser(ctx context.Context, user *User) error {
+	err := Pool.QueryRow(
 		ctx,
 		`
 		INSERT INTO users (
@@ -116,13 +118,14 @@ func AddUser(ctx context.Context, user User) error {
 			role
 		)
 		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
 		`,
 		user.FirstName,
 		user.LastName,
 		user.Email,
 		user.PasswordHash,
 		user.Role,
-	)
+	).Scan(&user.ID)
 	if err != nil {
 		return err
 	}

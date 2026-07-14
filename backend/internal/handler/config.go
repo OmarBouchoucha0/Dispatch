@@ -28,8 +28,6 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 type CreateConfigRequest struct {
