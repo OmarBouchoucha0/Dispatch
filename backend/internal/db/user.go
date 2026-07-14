@@ -16,7 +16,7 @@ type User struct {
 	Role         string
 }
 
-func GetUserByUserID(ctx context.Context, userID string) (*User, error) {
+func GetUserByID(ctx context.Context, userID string) (*User, error) {
 	var user User
 
 	err := Pool.QueryRow(

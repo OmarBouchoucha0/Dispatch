@@ -34,7 +34,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 	configs, err := db.GetUsers(ctx)
 	if err != nil {
 		slog.Error("coudnt get users", "error", err)
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -79,12 +79,11 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := db.User{
-		"1",
-		req.FirstName,
-		req.LastName,
-		req.Email,
-		pHash,
-		"user",
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		Email:        req.Email,
+		PasswordHash: pHash,
+		Role:         "user",
 	}
 	err = db.AddUser(ctx, user)
 	if err != nil {
@@ -97,8 +96,8 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 type LoginRequest struct {
-	Email    string "json:email"
-	Password string "json:password"
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -175,12 +174,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := db.User{
-		"1",
-		req.FirstName,
-		req.LastName,
-		req.Email,
-		pHash,
-		"user",
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		Email:        req.Email,
+		PasswordHash: pHash,
+		Role:         "user",
 	}
 	_, err = db.GetUserByEmail(ctx, user.Email)
 	if err != nil && !errors.Is(err, db.ErrUserNotFound) {

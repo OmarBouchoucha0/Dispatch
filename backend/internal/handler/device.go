@@ -13,7 +13,7 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 	configs, err := db.GetDevices(ctx)
 	if err != nil {
 		slog.Error("coudnt get devices", "error", err)
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -45,13 +45,12 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	device := db.Device{
-		"1",
-		req.Name,
+		Name: req.Name,
 	}
 	err = db.AddDevice(ctx, device)
 	if err != nil {
 		slog.Error("coudnt add device", "error", err)
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 	slog.Info("config added")

@@ -13,7 +13,7 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 	configs, err := db.GetConfigs(ctx)
 	if err != nil {
 		slog.Error("coudnt get configs", "error", err)
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -49,15 +49,25 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	config := db.Config{
-		"1",
-		req.DeviceID,
-		req.UserID,
-		req.Content,
+		DeviceID: req.DeviceID,
+		UserID:   req.UserID,
+		Content:  req.Content,
 	}
 	err = db.AddConfig(ctx, config)
 	if err != nil {
 		slog.Error("coudnt add config", "error", err)
-		http.Error(w, http.StatusText(422), 422)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+	log := db.Log{
+		UserID:   req.UserID,
+		DeviceID: req.DeviceID,
+		Action:   "Created",
+	}
+	err = db.AddLog(ctx, log)
+	if err != nil {
+		slog.Error("coudnt add log", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 	slog.Info("config added")

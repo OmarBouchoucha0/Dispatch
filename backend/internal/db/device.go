@@ -88,7 +88,7 @@ func AddDevice(ctx context.Context, device Device) error {
 		ctx,
 		`
 		INSERT INTO devices (
-			name,
+			name
 		)
 		VALUES ($1)
 		`,

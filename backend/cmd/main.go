@@ -20,8 +20,8 @@ func main() {
 	slog.SetDefault(logger)
 
 	ctx := context.Background()
-	dbUrl := "postgres://omar:omar2001@localhost:5432/dispatch"
-	if err := db.Connect(ctx, dbUrl); err != nil {
+	dbURL := "postgres://omar:omar2001@localhost:5432/dispatch"
+	if err := db.Connect(ctx, dbURL); err != nil {
 		slog.Error("Database failed", "error", err)
 	}
 	defer db.Pool.Close()
@@ -89,6 +89,19 @@ func mount() http.Handler {
 
 		r.Get("/", handler.ListConfigs)
 		r.Post("/", handler.AddConfig)
+	})
+
+	r.Route("/device", func(r chi.Router) {
+		r.Use(auth.Middleware)
+
+		r.Get("/", handler.ListDevices)
+		r.Post("/", handler.AddDevice)
+	})
+
+	r.Route("/logs", func(r chi.Router) {
+		r.Use(auth.Middleware)
+
+		r.Get("/", handler.ListLogs)
 	})
 	return r
 }
