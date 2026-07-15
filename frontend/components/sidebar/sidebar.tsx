@@ -19,10 +19,14 @@ import {
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { API_URL } from "@/lib/api"
+import { useConfigStore } from "@/store/config-store"
+import { useEditorStore } from "@/store/editor-store"
 
 export function SideBar() {
   const router = useRouter()
   const pathname = usePathname()
+  const clearConfig = useConfigStore(state => state.clear)
+  const clearEditor = useEditorStore(state => state.clear)
 
   async function handleLogout(e: React.FormEvent) {
     e.preventDefault()
@@ -40,7 +44,8 @@ export function SideBar() {
         toast.error("Logout failed")
         return
       }
-
+      clearConfig()
+      clearEditor()
       router.push("/")
 
     } catch {

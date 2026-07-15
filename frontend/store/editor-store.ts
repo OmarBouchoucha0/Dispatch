@@ -14,6 +14,7 @@ type EditorStore = {
   closeFile: (id: string) => void
 
   getFile: (id: string) => EditorFile | undefined
+  clear: () => void
 }
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -60,4 +61,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   getFile: (id) =>
     get().files[id],
+
+  clear: () =>
+    set({
+      files: {},
+    }),
 }))
+
