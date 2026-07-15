@@ -21,7 +21,7 @@ func ListLogs(w http.ResponseWriter, r *http.Request) {
 	logs, err := db.GetLogs(ctx)
 	if err != nil {
 		slog.Error("couldn't get logs", "error", err)
-		http.Error(w, http.StatusText(422), http.StatusUnprocessableEntity)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -42,8 +42,12 @@ func ListLogs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		userName := user.FirstName
+		if userName == "" {
+			userName = user.Email
+		}
 		res = append(res, LogsListResponse{
-			UserName:   user.FirstName,
+			UserName:   userName,
 			DeviceName: device.Name,
 			Action:     log.Action,
 			CreatedAt:  log.CreatedAt.Format("2006-01-02 15:04:05"),

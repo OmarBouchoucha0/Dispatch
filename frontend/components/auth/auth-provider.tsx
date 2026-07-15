@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react"
+import { API_URL } from "@/lib/api"
 
 type User = {
   id: string
@@ -37,7 +38,7 @@ export function AuthProvider({
     async function checkAuth() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/user/me`,
+          `${API_URL}/user/me`,
           {
             credentials: "include",
           }
@@ -51,7 +52,7 @@ export function AuthProvider({
         const data = await res.json()
         setUser(data)
 
-      } catch (err) {
+      } catch {
         setUser(null)
       } finally {
         setLoading(false)

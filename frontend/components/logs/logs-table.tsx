@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { API_URL } from "@/lib/api"
 import { toast } from "sonner"
 import { DataTable } from "./data-table"
 import { columns, Config } from "./columns"
@@ -13,7 +14,7 @@ export function LogsTable() {
     async function getLogs() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/logs`,
+          `${API_URL}/logs`,
           {
             method: "GET",
             credentials: "include",

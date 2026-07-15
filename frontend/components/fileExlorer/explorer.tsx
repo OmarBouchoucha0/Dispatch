@@ -1,115 +1,112 @@
-// components/editor/file-explorer.tsx
 "use client"
 
-import * as React from "react"
-import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"
+import { File } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Config, useConfigStore } from "@/store/config-store"
 
 export type FileNode = {
+  id: string
   name: string
-  type: "file" | "folder"
-  children?: FileNode[]
+  type: "file"
+}
+
+function buildTree(configs: Config[]): FileNode[] {
+  return configs
+    .map((config) => ({
+      id: config.id,
+      name: `${config.deviceName}.json`,
+      type: "file",
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 type FileExplorerProps = {
-  tree: FileNode[]
-  onFileSelect?: (path: string) => void
-  selectedPath?: string
+  onFileSelect?: (id: string) => void
 }
 
-export function Explorer({ tree, onFileSelect, selectedPath }: FileExplorerProps) {
+export function Explorer({
+  onFileSelect,
+}: FileExplorerProps) {
+  const configs = useConfigStore(
+    (state) => state.configs
+  )
+  const activeConfig = useConfigStore(
+    (state) => state.activeConfig
+  )
+
+  const openConfig = useConfigStore(
+    (state) => state.openConfig
+  )
+  const tree = buildTree(configs)
+
   return (
     <div className="text-xs select-none py-1">
       {tree.map((node) => (
         <FileTreeNode
-          key={node.name}
+          key={node.id}
           node={node}
           depth={0}
-          path={node.name}
-          onFileSelect={onFileSelect}
-          selectedPath={selectedPath}
+          onSelect={(node) => {
+            const config = configs.find(
+              (c) => c.id === node.id
+            )
+
+            if (config) {
+              openConfig(config)
+            }
+          }}
+          selectedPath={activeConfig ?? undefined}
         />
       ))}
     </div>
   )
 }
 
+
 type FileTreeNodeProps = {
   node: FileNode
   depth: number
-  path: string
-  onFileSelect?: (path: string) => void
   selectedPath?: string
+  onSelect: (node: FileNode) => void
 }
 
-function FileTreeNode({ node, depth, path, onFileSelect, selectedPath }: FileTreeNodeProps) {
-  const [expanded, setExpanded] = React.useState(depth === 0)
-  const isFolder = node.type === "folder"
-  const isSelected = !isFolder && selectedPath === path
 
-  const handleClick = () => {
-    if (isFolder) {
-      setExpanded((prev) => !prev)
-    } else {
-      onFileSelect?.(path)
-    }
-  }
+function FileTreeNode({
+  node,
+  depth,
+  selectedPath,
+  onSelect,
+}: FileTreeNodeProps) {
+  const isSelected = selectedPath === node.id
 
   return (
-    <div>
-      <div
-        onClick={handleClick}
-        className={cn(
-          "flex items-center gap-1 h-6 px-2  cursor-pointer rounded-none",
-          "hover:bg-accent/50 transition-colors",
-          isSelected && "bg-accent text-accent-foreground"
-        )}
-        style={{ paddingLeft: `${depth * 14 + 8}px` }}
-      >
-        {isFolder ? (
-          <>
-            <ChevronRight
-              className={cn(
-                "!h-3.5 !w-3.5 shrink-0 text-muted-foreground transition-transform",
-                expanded && "rotate-90"
-              )}
-            />
-            {expanded ? (
-              <FolderOpen className="!h-3.5 !w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
-            ) : (
-              <Folder className="!h-3.5 !w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
-            )}
-          </>
-        ) : (
-          <>
-            <span className="w-3.5 shrink-0" />
-            <File className="!h-3.5 !w-3.5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
-          </>
-        )}
-        <span
-          className={cn(
-            "truncate",
-            isSelected ? "text-accent-foreground" : "text-foreground/80"
-          )}
-        >
-          {node.name}
-        </span>
-      </div>
-
-      {isFolder && expanded && node.children && (
-        <div>
-          {node.children.map((child) => (
-            <FileTreeNode
-              key={child.name}
-              node={child}
-              depth={depth + 1}
-              path={`${path}/${child.name}`}
-              onFileSelect={onFileSelect}
-              selectedPath={selectedPath}
-            />
-          ))}
-        </div>
+    <div
+      onClick={() => onSelect(node)}
+      className={cn(
+        "flex items-center gap-1 h-6 px-2 cursor-pointer rounded-none",
+        "hover:bg-accent/50 transition-colors",
+        isSelected &&
+        "bg-accent text-accent-foreground"
       )}
+      style={{
+        paddingLeft: `${depth * 14 + 8}px`,
+      }}
+    >
+      <File
+        className="!h-3.5 !w-3.5 shrink-0 text-muted-foreground"
+        strokeWidth={1.5}
+      />
+
+      <span
+        className={cn(
+          "truncate",
+          isSelected
+            ? "text-accent-foreground"
+            : "text-foreground/80"
+        )}
+      >
+        {node.name}
+      </span>
     </div>
   )
 }

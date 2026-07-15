@@ -40,6 +40,7 @@ func GetLogs(ctx context.Context) ([]Log, error) {
 		`
         SELECT id, user_id, device_id, action, created_at
         FROM logs
+        ORDER BY created_at DESC
         `,
 	)
 	if err != nil {

@@ -70,23 +70,26 @@ func GetConfigs(ctx context.Context) ([]Config, error) {
 	return configs, nil
 }
 
-func AddConfig(ctx context.Context, config Config) error {
-	_, err := Pool.Exec(
+func AddConfig(ctx context.Context, config Config) (string, error) {
+	var created bool
+	err := Pool.QueryRow(
 		ctx,
 		`
-		INSERT INTO configs (
-			user_id,
-			device_id,
-			content
-		)
+		INSERT INTO configs (user_id, device_id, content)
 		VALUES ($1, $2, $3)
+		ON CONFLICT (device_id) DO UPDATE
+			SET user_id = $1, content = $3, updated_at = NOW()
+		RETURNING (xmax = 0)
 		`,
 		config.UserID,
 		config.DeviceID,
 		config.Content,
-	)
+	).Scan(&created)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	if created {
+		return "Created", nil
+	}
+	return "Updated", nil
 }

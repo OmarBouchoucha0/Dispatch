@@ -5,8 +5,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 )
+
+type ConfigListResponse struct {
+	ID         string          `json:"id"`
+	DeviceID   string          `json:"deviceID"`
+	DeviceName string          `json:"deviceName"`
+	Content    json.RawMessage `json:"content"`
+}
 
 func ListConfigs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -16,9 +24,27 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
+
+	var res []ConfigListResponse
+	for _, config := range configs {
+		device, err := db.GetDeviceByID(ctx, config.DeviceID)
+		if err != nil {
+			slog.Error("get device", "error", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		res = append(res, ConfigListResponse{
+			ID:         config.ID,
+			DeviceID:   device.ID,
+			DeviceName: device.Name,
+			Content:    config.Content,
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
-	err = json.NewEncoder(w).Encode(configs)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		slog.Error("json encoding", "error", err)
 		http.Error(
@@ -32,12 +58,18 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 
 type CreateConfigRequest struct {
 	DeviceID string          `json:"device_id"`
-	UserID   string          `json:"user_id"`
 	Content  json.RawMessage `json:"content"`
 }
 
 func AddConfig(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var req CreateConfigRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -47,20 +79,20 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	config := db.Config{
+		UserID:   claims.UserID,
 		DeviceID: req.DeviceID,
-		UserID:   req.UserID,
 		Content:  req.Content,
 	}
-	err = db.AddConfig(ctx, config)
+	action, err := db.AddConfig(ctx, config)
 	if err != nil {
 		slog.Error("coudnt add config", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 	log := db.Log{
-		UserID:   req.UserID,
+		UserID:   claims.UserID,
 		DeviceID: req.DeviceID,
-		Action:   "Created",
+		Action:   action,
 	}
 	err = db.AddLog(ctx, log)
 	if err != nil {

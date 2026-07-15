@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { API_URL } from "@/lib/api"
 import { useRouter } from "next/navigation"
 
 export function AuthRedirect() {
@@ -10,7 +11,7 @@ export function AuthRedirect() {
     async function checkUser() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/user/me`,
+          `${API_URL}/user/me`,
           {
             credentials: "include",
           }
@@ -19,7 +20,7 @@ export function AuthRedirect() {
         if (res.ok) {
           router.push("/files")
         }
-      } catch (err) {
+      } catch {
         // no valid session, stay on login page
       }
     }

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { API_URL } from "@/lib/api"
 
 export function SideBar() {
   const router = useRouter()
@@ -28,7 +29,7 @@ export function SideBar() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/logout`,
+        `${API_URL}/user/logout`,
         {
           method: "GET",
           credentials: "include",
