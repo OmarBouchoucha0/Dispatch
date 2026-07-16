@@ -33,7 +33,8 @@ func main() {
 	}
 	defer db.Pool.Close()
 	h := mount()
-	if err := run(h, "127.0.0.1:8080"); err != nil {
+	addr := fmt.Sprintf("%s:%s", getEnv("HOST", "127.0.0.1"), getEnv("PORT", "8080"))
+	if err := run(h, addr); err != nil {
 		slog.Error("Server has failed to start", "error", err)
 		os.Exit(1)
 	}
