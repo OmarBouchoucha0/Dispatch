@@ -39,12 +39,29 @@ func main() {
 		return
 	}
 	defer db.Pool.Close()
+	dbURL = addSSLMode(dbURL)
+	if err := db.RunMigrations(dbURL); err != nil {
+		slog.Error("Migration failed", "error", err)
+		return
+	}
 	h := mount()
 	addr := fmt.Sprintf("%s:%s", getEnv("HOST", "0.0.0.0"), getEnv("PORT", "8080"))
 	if err := run(h, addr); err != nil {
 		slog.Error("Server has failed to start", "error", err)
 		os.Exit(1)
 	}
+}
+
+func addSSLMode(dbURL string) string {
+	if strings.Contains(dbURL, "sslmode=") {
+		return dbURL
+	}
+
+	if strings.Contains(dbURL, "?") {
+		return dbURL + "&sslmode=disable"
+	}
+
+	return dbURL + "?sslmode=disable"
 }
 
 func getEnv(key, fallback string) string {
