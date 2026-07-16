@@ -29,23 +29,21 @@ export function TabsLine() {
               value={config.id}
               className="rounded-none
                           px-4 
-                          border-0
                           data-[state=active]:!bg-background
                           data-[state=active]:!text-foreground
-                          data-[state=active]:!border-0
-                          focus-visible:ring-0"
+                          data-[state=active]:!border-0"
             >
               {config.deviceName}.json
               {activeConfig === config.id && (
                 <span
-                  className="flex h-4 w-4 items-center justify-center p-0 ml-2"
+                  className="flex h-4 w-4 items-center ml-2"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation()
                     closeConfig(config.id)
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="!h-4 !w-4" />
                 </span>
               )}
             </TabsTrigger>

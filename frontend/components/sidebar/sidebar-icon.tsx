@@ -21,7 +21,7 @@ export const SidebarIcon = React.forwardRef<
     <Button
       ref={ref}
       variant="ghost"
-      className={`h-6 w-6 border-l-3 rounded-none p-6 ${active ? "border-l-primary" : "border-l-transparent"
+      className={`h-5 w-5 border-l-3 rounded-none p-6 ${active ? "border-l-primary" : "border-l-transparent"
         } ${className ?? ""}`}
       onMouseEnter={(e) => {
         setHovered(true)

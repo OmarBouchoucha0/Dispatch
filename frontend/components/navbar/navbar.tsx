@@ -33,11 +33,18 @@ export function NavBar() {
   const files = useEditorStore(
     (state) => state.files
   )
-  useEffect(() => {
-    if (syncError) {
-      toast.error("Couldn't fetch config files")
+  async function handleSync() {
+    try {
+      await sync()
+      toast.success("Configs synchronized")
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Couldn't fetch config files"
+      )
     }
-  }, [syncError])
+  }
 
   async function handleSubmitFile(e: React.FormEvent) {
     e.preventDefault()
@@ -202,7 +209,7 @@ export function NavBar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button size="sm" variant="secondary" onClick={sync} disabled={syncLoading}>
+        <Button size="sm" variant="secondary" onClick={handleSync} disabled={syncLoading}>
 
           {syncLoading ? (
             <Spinner data-icon="inline-start" />
