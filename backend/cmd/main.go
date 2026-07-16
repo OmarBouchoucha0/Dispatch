@@ -21,7 +21,8 @@ func main() {
 	slog.SetDefault(logger)
 
 	ctx := context.Background()
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+	dbURL := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
 		getEnv("DB_USER", "omar"),
 		getEnv("DB_PASSWORD", "omar2001"),
 		getEnv("DB_HOST", "localhost"),
@@ -33,7 +34,7 @@ func main() {
 	}
 	defer db.Pool.Close()
 	h := mount()
-	addr := fmt.Sprintf("%s:%s", getEnv("HOST", "127.0.0.1"), getEnv("PORT", "8080"))
+	addr := fmt.Sprintf("%s:%s", getEnv("HOST", "0.0.0.0"), getEnv("PORT", "8080"))
 	if err := run(h, addr); err != nil {
 		slog.Error("Server has failed to start", "error", err)
 		os.Exit(1)
