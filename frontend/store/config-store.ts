@@ -1,10 +1,12 @@
 import { create } from "zustand"
+import { API_URL } from "@/lib/api"
 import { useEditorStore } from "@/store/editor-store"
 
-type Config = {
+export type Config = {
   id: string
   deviceID: string
   deviceName: string
+  name: string
   content: object
 }
 
@@ -74,7 +76,7 @@ export const useConfigStore = create<ConfigStore>((set) => ({
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/config`,
+        `${API_URL}/config`,
         {
           credentials: "include",
         }

@@ -2,10 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func ListDevices(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +51,12 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 	}
 	err = db.AddDevice(ctx, device)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			slog.Error("device name already exists", "name", req.Name)
+			http.Error(w, "device name already exists", http.StatusConflict)
+			return
+		}
 		slog.Error("coudnt add device", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return

@@ -1,6 +1,17 @@
 "use client"
 
 import * as React from "react"
+import {
+  Files,
+  ScrollText,
+  Settings,
+  User,
+  LogOut,
+  FilePlus,
+  Monitor,
+  GitCommitVertical,
+  RefreshCw,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +22,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command"
 
 export function CommandPalette() {
@@ -30,10 +42,46 @@ export function CommandPalette() {
           <CommandInput placeholder="Type a command or search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
-              <CommandItem>Calendar</CommandItem>
-              <CommandItem>Search Emoji</CommandItem>
-              <CommandItem>Calculator</CommandItem>
+            <CommandGroup heading="Navigation">
+              <CommandItem>
+                <Files className="size-4" />
+                Files
+              </CommandItem>
+              <CommandItem>
+                <ScrollText className="size-4" />
+                Logs
+              </CommandItem>
+              <CommandItem>
+                <Settings className="size-4" />
+                Settings
+              </CommandItem>
+              <CommandItem>
+                <User className="size-4" />
+                Account
+              </CommandItem>
+              <CommandItem>
+                <LogOut className="size-4" />
+                Logout
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup heading="Actions">
+              <CommandItem>
+                <FilePlus className="size-4" />
+                New Config
+              </CommandItem>
+              <CommandItem>
+                <Monitor className="size-4" />
+                New Device
+              </CommandItem>
+              <CommandItem>
+                <GitCommitVertical className="size-4" />
+                Commit
+              </CommandItem>
+              <CommandItem>
+                <RefreshCw className="size-4" />
+                Sync
+              </CommandItem>
             </CommandGroup>
           </CommandList>
         </Command>

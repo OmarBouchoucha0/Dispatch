@@ -6,23 +6,26 @@ import {
 } from "@/components/ui/resizable"
 import { Editor } from "@/components/editor/editor"
 import { Explorer } from "@/components/fileExlorer/explorer"
-import { useState } from "react"
+import { ExplorerHeader } from "@/components/fileExlorer/explorer-header"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
-
-
+import { useEffect } from "react"
 
 export default function Home() {
-  const [selectedPath, setSelectedPath] = useState<string>()
   const { user, loading } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/")
+    }
+  }, [loading, user, router])
 
   if (loading) {
     return <div>Loading...</div>
   }
 
   if (!user) {
-    router.push("/")
     return null
   }
 
@@ -34,9 +37,7 @@ export default function Home() {
         collapsible={true}
         collapsedSize={0}
         className="bg-sidebar">
-        <h1 className="p-4 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          File Explorer
-        </h1>
+        <ExplorerHeader />
         <Explorer />
       </ResizablePanel>
       <ResizableHandle />

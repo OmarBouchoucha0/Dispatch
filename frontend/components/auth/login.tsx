@@ -15,6 +15,7 @@ import { useState } from "react"
 import { API_URL } from "@/lib/api"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-provider"
 
 
 type LoginProps = {
@@ -23,6 +24,7 @@ type LoginProps = {
 
 export function Login({ onSwitch }: LoginProps) {
   const router = useRouter()
+  const { refresh } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -53,6 +55,7 @@ export function Login({ onSwitch }: LoginProps) {
         return
       }
 
+      await refresh()
       router.push("/files")
 
     } catch {

@@ -13,6 +13,7 @@ type ConfigListResponse struct {
 	ID         string          `json:"id"`
 	DeviceID   string          `json:"deviceID"`
 	DeviceName string          `json:"deviceName"`
+	Name       string          `json:"name"`
 	Content    json.RawMessage `json:"content"`
 }
 
@@ -38,6 +39,7 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 			ID:         config.ID,
 			DeviceID:   device.ID,
 			DeviceName: device.Name,
+			Name:       config.Name,
 			Content:    config.Content,
 		})
 	}
@@ -58,6 +60,7 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 
 type CreateConfigRequest struct {
 	DeviceID string          `json:"device_id"`
+	Name     string          `json:"name"`
 	Content  json.RawMessage `json:"content"`
 }
 
@@ -78,12 +81,13 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
-	config := db.Config{
+	config := &db.Config{
 		UserID:   claims.UserID,
 		DeviceID: req.DeviceID,
+		Name:     req.Name,
 		Content:  req.Content,
 	}
-	action, err := db.AddConfig(ctx, config)
+	err = db.AddConfig(ctx, config)
 	if err != nil {
 		slog.Error("coudnt add config", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -92,7 +96,7 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 	log := db.Log{
 		UserID:   claims.UserID,
 		DeviceID: req.DeviceID,
-		Action:   action,
+		Action:   "Created",
 	}
 	err = db.AddLog(ctx, log)
 	if err != nil {

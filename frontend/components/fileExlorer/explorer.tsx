@@ -1,32 +1,49 @@
 "use client"
 
-import { File } from "lucide-react"
+import { ChevronDown, ChevronRight, File } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Config, useConfigStore } from "@/store/config-store"
+import { useState } from "react"
 
 export type FileNode = {
   id: string
   name: string
-  type: "file"
+  type: "file" | "folder"
+  children?: FileNode[]
 }
 
 function buildTree(configs: Config[]): FileNode[] {
-  return configs
-    .map((config) => ({
+  if (!configs || !Array.isArray(configs)) return []
+
+  const groups = new Map<string, FileNode>()
+
+  for (const config of configs) {
+    if (!groups.has(config.deviceName)) {
+      groups.set(config.deviceName, {
+        id: `folder-${config.deviceID}`,
+        name: config.deviceName,
+        type: "folder",
+        children: [],
+      })
+    }
+
+    const folder = groups.get(config.deviceName)!
+    folder.children!.push({
       id: config.id,
-      name: `${config.deviceName}.json`,
       type: "file",
-    }))
+      name: config.name || `${config.deviceName}.json`,
+    })
+  }
+
+  return [...groups.values()]
     .sort((a, b) => a.name.localeCompare(b.name))
+    .map((folder) => ({
+      ...folder,
+      children: folder.children!.sort((a, b) => a.name.localeCompare(b.name)),
+    }))
 }
 
-type FileExplorerProps = {
-  onFileSelect?: (id: string) => void
-}
-
-export function Explorer({
-  onFileSelect,
-}: FileExplorerProps) {
+export function Explorer() {
   const configs = useConfigStore(
     (state) => state.configs
   )
@@ -47,12 +64,14 @@ export function Explorer({
           node={node}
           depth={0}
           onSelect={(node) => {
-            const config = configs.find(
-              (c) => c.id === node.id
-            )
+            if (node.type === "file") {
+              const selectedConfig = configs.find(
+                (c) => c.id === node.id
+              )
 
-            if (config) {
-              openConfig(config)
+              if (selectedConfig) {
+                openConfig(selectedConfig)
+              }
             }
           }}
           selectedPath={activeConfig ?? undefined}
@@ -62,7 +81,6 @@ export function Explorer({
   )
 }
 
-
 type FileTreeNodeProps = {
   node: FileNode
   depth: number
@@ -70,14 +88,49 @@ type FileTreeNodeProps = {
   onSelect: (node: FileNode) => void
 }
 
-
 function FileTreeNode({
   node,
   depth,
   selectedPath,
   onSelect,
 }: FileTreeNodeProps) {
-  const isSelected = selectedPath === node.id
+  const [expanded, setExpanded] = useState(true)
+  const isSelected = node.type === "file" && selectedPath === node.id
+
+  if (node.type === "folder") {
+    return (
+      <div>
+        <div
+          onClick={() => setExpanded(!expanded)}
+          className={cn(
+            "flex items-center gap-1 h-6 px-2 cursor-pointer rounded-none",
+            "hover:bg-accent/50 transition-colors"
+          )}
+          style={{
+            paddingLeft: `${depth * 20 + 8}px`,
+          }}
+        >
+          {expanded ? (
+            <ChevronDown className="!h-3 !w-3 shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="!h-3 !w-3 shrink-0 text-muted-foreground" />
+          )}
+          <span className="truncate font-medium">
+            {node.name}
+          </span>
+        </div>
+        {expanded && node.children?.map((child) => (
+          <FileTreeNode
+            key={child.id}
+            node={child}
+            depth={depth + 1}
+            selectedPath={selectedPath}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -89,7 +142,7 @@ function FileTreeNode({
         "bg-accent text-accent-foreground"
       )}
       style={{
-        paddingLeft: `${depth * 14 + 8}px`,
+        paddingLeft: `${depth * 20 + 8}px`,
       }}
     >
       <File

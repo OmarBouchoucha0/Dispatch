@@ -19,11 +19,13 @@ type User = {
 type AuthContextType = {
   user: User | null
   loading: boolean
+  refresh: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  refresh: async () => {},
 })
 
 export function AuthProvider({
@@ -34,31 +36,33 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch(
-          `${API_URL}/user/me`,
-          {
-            credentials: "include",
-          }
-        )
-
-        if (!res.ok) {
-          setUser(null)
-          return
+  async function checkAuth() {
+    setLoading(true)
+    try {
+      const res = await fetch(
+        `${API_URL}/user/me`,
+        {
+          credentials: "include",
         }
+      )
 
-        const data = await res.json()
-        setUser(data)
-
-      } catch {
+      if (!res.ok) {
         setUser(null)
-      } finally {
-        setLoading(false)
+        return
       }
-    }
 
+      const data = await res.json()
+      setUser(data)
+
+    } catch {
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkAuth()
   }, [])
 
@@ -67,6 +71,7 @@ export function AuthProvider({
       value={{
         user,
         loading,
+        refresh: checkAuth,
       }}
     >
       {children}

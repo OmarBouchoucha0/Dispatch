@@ -15,6 +15,7 @@ import { useState } from "react"
 import { API_URL } from "@/lib/api"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-provider"
 
 type SignupProps = {
   onSwitch: () => void
@@ -22,6 +23,7 @@ type SignupProps = {
 
 export function Signup({ onSwitch }: SignupProps) {
   const router = useRouter()
+  const { refresh } = useAuth()
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
@@ -55,6 +57,7 @@ export function Signup({ onSwitch }: SignupProps) {
         toast.error("email already in use")
         return
       }
+      await refresh()
       router.push("/files")
     } catch {
       toast.error("Server error")
