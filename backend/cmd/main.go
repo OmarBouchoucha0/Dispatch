@@ -75,6 +75,7 @@ func mount() http.Handler {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{
 			"http://localhost:3000",
+			"https://dispatch-h0d4hu3u2-omarbouchoucha0s-projects.vercel.app",
 		},
 		AllowedMethods: []string{
 			"GET",
