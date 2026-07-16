@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -20,7 +21,13 @@ func main() {
 	slog.SetDefault(logger)
 
 	ctx := context.Background()
-	dbURL := "postgres://omar:omar2001@localhost:5432/dispatch"
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+		getEnv("DB_USER", "omar"),
+		getEnv("DB_PASSWORD", "omar2001"),
+		getEnv("DB_HOST", "localhost"),
+		getEnv("DB_PORT", "5432"),
+		getEnv("DB_NAME", "dispatch"),
+	)
 	if err := db.Connect(ctx, dbURL); err != nil {
 		slog.Error("Database failed", "error", err)
 	}
@@ -30,6 +37,13 @@ func main() {
 		slog.Error("Server has failed to start", "error", err)
 		os.Exit(1)
 	}
+}
+
+func getEnv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func run(h http.Handler, a string) error {
