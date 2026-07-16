@@ -27,7 +27,7 @@ export function LogsTable() {
         }
 
         const logs = await res.json()
-        setData(logs)
+        setData(logs ?? [])
 
       } catch {
         toast.error("Server error")
