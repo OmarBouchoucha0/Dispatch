@@ -21,14 +21,17 @@ func main() {
 	slog.SetDefault(logger)
 
 	ctx := context.Background()
-	dbURL := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
-		getEnv("DB_USER", "omar"),
-		getEnv("DB_PASSWORD", "omar2001"),
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_PORT", "5432"),
-		getEnv("DB_NAME", "dispatch"),
-	)
+	dbURL := getEnv("DATABASE_URL", "")
+	if dbURL == "" {
+		dbURL = fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s",
+			getEnv("DB_USER", "omar"),
+			getEnv("DB_PASSWORD", "omar2001"),
+			getEnv("DB_HOST", "localhost"),
+			getEnv("DB_PORT", "5432"),
+			getEnv("DB_NAME", "dispatch"),
+		)
+	}
 	if err := db.Connect(ctx, dbURL); err != nil {
 		slog.Error("Database failed", "error", err)
 	}
