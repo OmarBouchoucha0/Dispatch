@@ -32,8 +32,10 @@ func main() {
 			getEnv("DB_NAME", "dispatch"),
 		)
 	}
+	slog.Info("Connecting to database")
 	if err := db.Connect(ctx, dbURL); err != nil {
 		slog.Error("Database failed", "error", err)
+		return
 	}
 	defer db.Pool.Close()
 	h := mount()
