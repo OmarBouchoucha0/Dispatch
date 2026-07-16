@@ -5,11 +5,27 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var (
+	cookieSameSite http.SameSite
+	cookieSecure   bool
+)
+
+func init() {
+	if os.Getenv("DEV") == "true" {
+		cookieSameSite = http.SameSiteLaxMode
+		cookieSecure = false
+	} else {
+		cookieSameSite = http.SameSiteNoneMode
+		cookieSecure = true
+	}
+}
 
 func hashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(
@@ -137,8 +153,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		Secure:   cookieSecure,
+		SameSite: cookieSameSite,
 		MaxAge:   86400,
 	})
 
@@ -204,8 +220,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		Secure:   cookieSecure,
+		SameSite: cookieSameSite,
 		MaxAge:   86400,
 	})
 	slog.Info("user added")
@@ -218,8 +234,8 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		Secure:   cookieSecure,
+		SameSite: cookieSameSite,
 		MaxAge:   -1,
 	})
 	w.WriteHeader(http.StatusOK)
