@@ -27,25 +27,26 @@ export function TabsLine() {
             <TabsTrigger
               key={config.id}
               value={config.id}
-              className="rounded-none
-                          px-4 
+              className="group rounded-none
+                          px-2 
+                          pl-5
+                          border-r-border
                           data-[state=active]:!bg-background
                           data-[state=active]:!text-foreground
-                          data-[state=active]:!border-0"
+                          data-[state=active]:!border-l-0
+                          data-[state=active]:!border-y-0"
             >
-              {config.deviceName}.json
-              {activeConfig === config.id && (
-                <span
-                  className="flex h-4 w-4 items-center ml-2"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    closeConfig(config.id)
-                  }}
-                >
-                  <X className="!h-4 !w-4" />
-                </span>
-              )}
+              {config.name}.json
+              <span
+                className="flex items-center opacity-0 group-hover:opacity-100 group-data-[state=active]:opacity-100 transition-opacity"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  closeConfig(config.id)
+                }}
+              >
+                <X />
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>

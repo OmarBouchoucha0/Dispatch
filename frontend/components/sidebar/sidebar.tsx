@@ -1,7 +1,7 @@
 "use client"
 import { Files, History, Settings, User, LogOut } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import {
   Tooltip,
   TooltipContent,
@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/tooltip"
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -17,53 +16,32 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
-import { API_URL } from "@/lib/api"
-import { useConfigStore } from "@/store/config-store"
-import { useEditorStore } from "@/store/editor-store"
+import { logout } from "@/lib/api"
+import { useUiStore } from "@/store/ui-store"
 
 export function SideBar() {
   const router = useRouter()
   const pathname = usePathname()
-  const clearConfig = useConfigStore(state => state.clear)
-  const clearEditor = useEditorStore(state => state.clear)
+  const searchParams = useSearchParams()
+  const view = searchParams.get("view") ?? "files"
+  const accountOpen = useUiStore((state) => state.accountOpen)
+  const setAccountOpen = useUiStore((state) => state.setAccountOpen)
+  const settingsOpen = useUiStore((state) => state.settingsOpen)
+  const setSettingsOpen = useUiStore((state) => state.setSettingsOpen)
 
-  async function handleLogout(e: React.FormEvent) {
-    e.preventDefault()
-
-    try {
-      const res = await fetch(
-        `${API_URL}/user/logout`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      )
-
-      if (!res.ok) {
-        toast.error("Logout failed")
-        return
-      }
-      clearConfig()
-      clearEditor()
-      router.push("/")
-
-    } catch {
-      toast.error("Server error")
-    }
+  async function handleLogout() {
+    await logout()
+    router.push("/")
   }
+
   return (
     <div className="flex flex-col items-center gap-0  h-full bg-sidebar border-r border-border">
 
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={Files}
-            onClick={() => {
-              console.log("clicked", "/files")
-              router.push("/files")
-            }
-            }
-            active={pathname === "/files"}
+            onClick={() => router.push("/files")}
+            active={pathname === "/files" && view === "files"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -74,8 +52,8 @@ export function SideBar() {
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={History}
-            onClick={() => router.push("/logs")}
-            active={pathname === "/logs"}
+            onClick={() => router.push("/files?view=logs")}
+            active={pathname === "/files" && view === "logs"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -84,10 +62,15 @@ export function SideBar() {
       </Tooltip>
 
       <div className="mt-auto flex flex-col items-center gap-0">
-        <Dialog>
-          <DialogTrigger asChild>
-            <SidebarIcon icon={User} />
-          </DialogTrigger>
+        <Dialog open={accountOpen} onOpenChange={setAccountOpen}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SidebarIcon icon={User} onClick={() => setAccountOpen(true)} />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Account</p>
+            </TooltipContent>
+          </Tooltip>
 
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -106,10 +89,15 @@ export function SideBar() {
         </Dialog>
 
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <SidebarIcon icon={Settings} />
-          </DialogTrigger>
+        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SidebarIcon icon={Settings} onClick={() => setSettingsOpen(true)} />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Settings</p>
+            </TooltipContent>
+          </Tooltip>
 
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -127,7 +115,14 @@ export function SideBar() {
           </DialogContent>
         </Dialog>
 
-        <SidebarIcon icon={LogOut} onClick={handleLogout} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SidebarIcon icon={LogOut} onClick={handleLogout} />
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Logout</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div >
   )

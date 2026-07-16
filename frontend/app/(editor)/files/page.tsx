@@ -7,13 +7,16 @@ import {
 import { Editor } from "@/components/editor/editor"
 import { Explorer } from "@/components/fileExlorer/explorer"
 import { ExplorerHeader } from "@/components/fileExlorer/explorer-header"
-import { useRouter } from "next/navigation"
+import { LogsTable } from "@/components/logs/logs-table"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
-import { useEffect } from "react"
+import { Suspense, useEffect } from "react"
 
-export default function Home() {
+function HomeContent() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const view = searchParams.get("view") ?? "files"
 
   useEffect(() => {
     if (!loading && !user) {
@@ -27,6 +30,14 @@ export default function Home() {
 
   if (!user) {
     return null
+  }
+
+  if (view === "logs") {
+    return (
+      <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
+        <LogsTable />
+      </div>
+    )
   }
 
   return (
@@ -46,4 +57,12 @@ export default function Home() {
       </ResizablePanel>
     </ResizablePanelGroup>
   );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
+  )
 }

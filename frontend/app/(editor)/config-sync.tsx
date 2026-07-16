@@ -2,12 +2,15 @@
 
 import { useEffect } from "react"
 import { useConfigStore } from "@/store/config-store"
+import { useLogsStore } from "@/store/logs-store"
 
 export function ConfigSync() {
-  const sync = useConfigStore((state) => state.sync)
+  const syncConfigs = useConfigStore((state) => state.sync)
+  const syncLogs = useLogsStore((state) => state.sync)
 
   useEffect(() => {
-    sync()
+    syncConfigs()
+    syncLogs()
   }, [])
 
   return null

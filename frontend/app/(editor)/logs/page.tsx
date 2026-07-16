@@ -1,5 +1,5 @@
-import { LogsPage } from "@/components/logs/logs-page"
+import { redirect } from "next/navigation"
 
-export default function Home() {
-  return <LogsPage />
+export default function LogsRedirect() {
+  redirect("/files?view=logs")
 }

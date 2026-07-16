@@ -10,29 +10,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useConfigStore } from "@/store/config-store"
-import { useEditorStore } from "@/store/editor-store"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
-import { useEffect } from "react"
 import { useState } from "react"
-import { API_URL } from "@/lib/api"
+import { commitConfig } from "@/lib/api"
 
 export function NavBar() {
   const sync = useConfigStore((state) => state.sync)
   const syncLoading = useConfigStore((state) => state.loading)
-  const syncError = useConfigStore((state) => state.error)
   const [commitLoading, setCommitLoading] = useState(false)
-  const activeConfigId = useConfigStore(
-    (state) => state.activeConfig
-  )
 
-  const openedConfigs = useConfigStore(
-    (state) => state.openedConfigs
-  )
-
-  const files = useEditorStore(
-    (state) => state.files
-  )
   async function handleSync() {
     try {
       await sync()
@@ -51,51 +38,12 @@ export function NavBar() {
     setCommitLoading(true)
 
     try {
-      const activeConfig = openedConfigs.find(
-        (config) => config.id === activeConfigId
-      )
-
-      if (!activeConfig) {
-        toast.error("No file selected")
-        return
-      }
-
-      const editorFile = files[activeConfig.id]
-
-      if (!editorFile) {
-        toast.error("No editor content found")
-        return
-      }
-
-      const res = await fetch(
-        `${API_URL}/config`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            device_id: activeConfig.deviceID,
-            content: JSON.parse(editorFile.content),
-          }),
-        }
-      )
-
-      if (!res.ok) {
-        toast.error("Failed to save config")
-        return
-      }
-
-      toast.success("Config saved")
-
-    } catch {
-      toast.error("Invalid JSON or server error")
+      await commitConfig()
     } finally {
       setCommitLoading(false)
     }
-
   }
+
   return (
     <div className="w-full flex items-center justify-between p-1 bg-sidebar border-b border-border gap-2">
       <div className="flex items-center gap-0">
