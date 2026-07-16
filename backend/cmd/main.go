@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
@@ -73,9 +74,16 @@ func mount() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{
-			"http://localhost:3000",
-			"https://dispatch-h0d4hu3u2-omarbouchoucha0s-projects.vercel.app",
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			if origin == "http://localhost:3000" {
+				return true
+			}
+
+			if strings.HasSuffix(origin, ".vercel.app") {
+				return true
+			}
+
+			return false
 		},
 		AllowedMethods: []string{
 			"GET",
