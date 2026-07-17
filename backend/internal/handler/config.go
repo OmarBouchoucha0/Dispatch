@@ -87,7 +87,7 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 		Name:     req.Name,
 		Content:  req.Content,
 	}
-	err = db.AddConfig(ctx, config)
+	action, err := db.AddConfig(ctx, config)
 	if err != nil {
 		slog.Error("coudnt add config", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -96,7 +96,94 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 	log := db.Log{
 		UserID:   claims.UserID,
 		DeviceID: req.DeviceID,
-		Action:   "Created",
+		Action:   action,
+	}
+	err = db.AddLog(ctx, log)
+	if err != nil {
+		slog.Error("coudnt add log", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+	slog.Info("config added")
+}
+
+type RenameConfigRequest struct {
+	DeviceID string `json:"device_id"`
+	Name     string `json:"name"`
+	NewName  string `json:"new_name"`
+}
+
+func RenameConfig(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req RenameConfigRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err = db.RenameConfig(ctx, req.Name, req.NewName)
+	if err != nil {
+		slog.Error("coudnt add config", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	log := db.Log{
+		UserID:   claims.UserID,
+		DeviceID: req.DeviceID,
+		Action:   "Renamed",
+	}
+	err = db.AddLog(ctx, log)
+	if err != nil {
+		slog.Error("coudnt add log", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+	slog.Info("config added")
+}
+
+type DeleteConfigRequest struct {
+	DeviceID string `json:"device_id"`
+	Name     string `json:"name"`
+}
+
+func DeleteConfig(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req DeleteConfigRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err = db.DeleteConfig(ctx, req.Name)
+	if err != nil {
+		slog.Error("coudnt add config", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	log := db.Log{
+		UserID:   claims.UserID,
+		DeviceID: req.DeviceID,
+		Action:   "Deleted",
 	}
 	err = db.AddLog(ctx, log)
 	if err != nil {

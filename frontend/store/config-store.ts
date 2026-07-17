@@ -25,6 +25,8 @@ type ConfigStore = {
   sync: () => Promise<void>
 
   openConfig: (config: Config) => void
+  renameConfig: (id: string, name: string) => void
+  deleteConfig: (id: string) => void
   setSelectedConfig: (config: Config | null) => void
   setActiveConfig: (id: string) => void
 
@@ -130,6 +132,28 @@ export const useConfigStore = create<ConfigStore>()(
           activeConfig: config.id,
         }))
       },
+      renameConfig: (id, name) =>
+        set((state) => ({
+          configs: state.configs.map((c) =>
+            c.id === id ? { ...c, name } : c
+          ),
+          openedConfigs: state.openedConfigs.map((c) =>
+            c.id === id ? { ...c, name } : c
+          ),
+        })),
+      deleteConfig: (id) =>
+        set((state) => {
+          useEditorStore.getState().closeFile(id)
+
+          return {
+            configs: state.configs.filter((c) => c.id !== id),
+            openedConfigs: state.openedConfigs.filter(
+              (c) => c.id !== id
+            ),
+            activeConfig:
+              state.activeConfig === id ? null : state.activeConfig,
+          }
+        }),
       setActiveConfig: (id) =>
         set({
           activeConfig: id,

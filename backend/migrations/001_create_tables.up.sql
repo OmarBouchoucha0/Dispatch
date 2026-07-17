@@ -23,7 +23,7 @@ CREATE TABLE devices (
 CREATE TABLE configs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-    device_id UUID NOT NULL UNIQUE,
+    device_id UUID NOT NULL,
     content JSONB NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -45,7 +45,7 @@ CREATE TABLE logs (
     user_id UUID NOT NULL,
     device_id UUID NOT NULL,
     Action VARCHAR(50) NOT NULL DEFAULT 'Created'
-        CHECK (Action IN ('Created', 'Updated','Deleted')),
+        CHECK (Action IN ('Created', 'Updated','Renamed','Deleted')),
 
     Created_At TIMESTAMP NOT NULL DEFAULT NOW(),
 

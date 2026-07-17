@@ -35,6 +35,7 @@ export async function commitConfig(): Promise<boolean> {
       credentials: "include",
       body: JSON.stringify({
         device_id: activeConfig.deviceID,
+        name: activeConfig.name,
         content: JSON.parse(editorFile.content),
       }),
     })

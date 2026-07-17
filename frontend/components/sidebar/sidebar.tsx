@@ -20,12 +20,14 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { logout } from "@/lib/api"
 import { useUiStore } from "@/store/ui-store"
+import { useAuth } from "@/components/auth/auth-provider"
 
 export function SideBar() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
+  const { user } = useAuth()
   const accountOpen = useUiStore((state) => state.accountOpen)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const settingsOpen = useUiStore((state) => state.settingsOpen)
@@ -84,22 +86,22 @@ export function SideBar() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" type="text" required />
+                <Input id="firstName" type="text" required placeholder={user?.firstName ?? "First name"} />
               </div>
 
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" type="text" required />
+                <Input id="lastName" type="text" required placeholder={user?.lastName ?? "Last name"} />
               </div>
 
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required />
+                <Input id="email" type="email" required placeholder={user?.email ?? "Email"} />
               </div>
 
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" placeholder="Leave blank to keep current" />
               </div>
             </div>
             <DialogFooter>
