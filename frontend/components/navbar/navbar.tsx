@@ -65,17 +65,11 @@ export function NavBar() {
             <DropdownMenuItem>
               Open File
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              Save
-            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem>
               Close File
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Exit
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -132,9 +126,6 @@ export function NavBar() {
           <DropdownMenuContent align="start" className="w-full bg-secondary">
             <DropdownMenuItem>
               Toggle Sidebar
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Toggle Terminal
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

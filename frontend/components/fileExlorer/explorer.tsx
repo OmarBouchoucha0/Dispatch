@@ -4,6 +4,8 @@ import { ChevronDown, ChevronRight, File } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Config, useConfigStore } from "@/store/config-store"
 import { useState } from "react"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export type FileNode = {
   id: string
@@ -103,21 +105,24 @@ function FileTreeNode({
         <div
           onClick={() => setExpanded(!expanded)}
           className={cn(
-            "flex items-center gap-1 h-6 px-2 cursor-pointer rounded-none",
+            "flex items-center gap-1 h-6 pl-2 cursor-pointer rounded-none",
             "hover:bg-accent/50 transition-colors"
           )}
-          style={{
-            paddingLeft: `${depth * 20 + 8}px`,
-          }}
         >
           {expanded ? (
             <ChevronDown className="!h-3 !w-3 shrink-0 text-muted-foreground" />
           ) : (
             <ChevronRight className="!h-3 !w-3 shrink-0 text-muted-foreground" />
           )}
-          <span className="truncate font-medium">
-            {node.name}
-          </span>
+
+          <div className="flex flex-row items-center w-full justify-between">
+            <span className="truncate font-medium">
+              {node.name}
+            </span>
+            <Button variant="ghost" className="!h-5 !w-1 px-3" >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
         {expanded && node.children?.map((child) => (
           <FileTreeNode

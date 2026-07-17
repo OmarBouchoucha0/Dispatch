@@ -16,6 +16,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { logout } from "@/lib/api"
 import { useUiStore } from "@/store/ui-store"
 
@@ -80,7 +82,25 @@ export function SideBar() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {/*  */}
+              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input id="firstName" type="text" required />
+              </div>
+
+              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input id="lastName" type="text" required />
+              </div>
+
+              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" required />
+              </div>
+
+              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" required />
+              </div>
             </div>
             <DialogFooter>
               <Button type="submit">Save changes</Button>
