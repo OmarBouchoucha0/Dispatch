@@ -99,10 +99,6 @@ export function SideBar() {
                 <Input id="email" type="email" required placeholder={user?.email ?? "Email"} />
               </div>
 
-              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="Leave blank to keep current" />
-              </div>
             </div>
             <DialogFooter>
               <Button type="submit">Save changes</Button>
