@@ -148,7 +148,7 @@ func RenameConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
-	slog.Info("config added")
+	slog.Info("config renamed")
 }
 
 type DeleteConfigRequest struct {
@@ -191,5 +191,5 @@ func DeleteConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
-	slog.Info("config added")
+	slog.Info("config deleted")
 }

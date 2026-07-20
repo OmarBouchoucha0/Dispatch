@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 )
 
 type Device struct {
@@ -97,5 +98,48 @@ func AddDevice(ctx context.Context, device Device) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func RenameDevice(ctx context.Context, originalName string, newName string) error {
+	cmd, err := Pool.Exec(
+		ctx,
+		`
+		UPDATE devices
+		SET name = $1,
+		    updated_at = NOW()
+		WHERE name = $2
+		`,
+		newName,
+		originalName,
+	)
+	if err != nil {
+		return err
+	}
+
+	if cmd.RowsAffected() == 0 {
+		return errors.New("device not found")
+	}
+
+	return nil
+}
+
+func DeleteDevice(ctx context.Context, name string) error {
+	cmd, err := Pool.Exec(
+		ctx,
+		`
+		DELETE FROM devices
+		WHERE name = $1
+		`,
+		name,
+	)
+	if err != nil {
+		return err
+	}
+
+	if cmd.RowsAffected() == 0 {
+		return errors.New("device not found")
+	}
+
 	return nil
 }

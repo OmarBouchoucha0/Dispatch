@@ -147,6 +147,8 @@ func mount() http.Handler {
 
 		r.Get("/", handler.ListDevices)
 		r.Post("/", handler.AddDevice)
+		r.Put("/rename", handler.RenameDevice)
+		r.Delete("/", handler.DeleteDevice)
 	})
 
 	r.Route("/logs", func(r chi.Router) {

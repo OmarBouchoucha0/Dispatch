@@ -6,13 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func ListDevices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	configs, err := db.GetDevices(ctx)
+	devices, err := db.GetDevices(ctx)
 	if err != nil {
 		slog.Error("coudnt get devices", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -20,7 +21,7 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 
-	err = json.NewEncoder(w).Encode(configs)
+	err = json.NewEncoder(w).Encode(devices)
 	if err != nil {
 		slog.Error("json encoding", "error", err)
 		http.Error(
@@ -62,4 +63,91 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info("device added")
+}
+
+type RenameDeviceRequest struct {
+	DeviceID string `json:"device_id"`
+	Name     string `json:"name"`
+	NewName  string `json:"new_name"`
+}
+
+func RenameDevice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req RenameDeviceRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err = db.RenameDevice(ctx, req.Name, req.NewName)
+	if err != nil {
+		slog.Error("coudnt add device", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	log := db.Log{
+		UserID:   claims.UserID,
+		DeviceID: req.DeviceID,
+		Action:   "Renamed",
+	}
+	err = db.AddLog(ctx, log)
+	if err != nil {
+		slog.Error("coudnt add log", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+	slog.Info("device renamed")
+}
+
+type DeleteDeviceRequest struct {
+	DeviceID string `json:"device_id"`
+	Name     string `json:"name"`
+}
+
+func DeleteDevice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req DeleteDeviceRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err = db.DeleteDevice(ctx, req.Name)
+	if err != nil {
+		slog.Error("coudnt delete device", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	log := db.Log{
+		UserID:   claims.UserID,
+		DeviceID: req.DeviceID,
+		Action:   "Deleted",
+	}
+	err = db.AddLog(ctx, log)
+	if err != nil {
+		slog.Error("coudnt add log", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+	slog.Info("device deleted")
 }
