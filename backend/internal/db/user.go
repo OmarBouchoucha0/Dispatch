@@ -51,7 +51,7 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	err := Pool.QueryRow(
 		ctx,
 		`
-        SELECT id, first_name, last_name, email, password_hash, role, created_at
+        SELECT id, first_name, last_name, email, password_hash, role 
         FROM users
         WHERE email = $1
         `,
@@ -63,7 +63,6 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
-		&user.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

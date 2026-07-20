@@ -9,7 +9,6 @@ import {
 import { API_URL } from "@/lib/api"
 
 type User = {
-  id: string
   firstName: string
   lastName: string
   email: string

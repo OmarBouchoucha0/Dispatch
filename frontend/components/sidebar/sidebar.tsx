@@ -27,7 +27,7 @@ export function SideBar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
-  const { user } = useAuth()
+  const user = useAuth()
   const accountOpen = useUiStore((state) => state.accountOpen)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const settingsOpen = useUiStore((state) => state.settingsOpen)
@@ -110,17 +110,17 @@ export function SideBar() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" type="text" required placeholder={user?.firstName ?? "First name"} />
+                <Input id="firstName" type="text" required placeholder={user?.firstName} />
               </div>
 
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" type="text" required placeholder={user?.lastName ?? "Last name"} />
+                <Input id="lastName" type="text" required placeholder={user?.lastName} />
               </div>
 
               <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required placeholder={user?.email ?? "Email"} />
+                <Input id="email" type="email" required placeholder={user?.email} />
               </div>
 
             </div>

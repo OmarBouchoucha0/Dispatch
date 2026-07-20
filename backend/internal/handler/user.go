@@ -254,6 +254,13 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+type MeRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+}
+
 func Me(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -270,14 +277,7 @@ func Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct {
-		ID        string `json:"id"`
-		FirstName string `json:"first_name"`
-		LastName  string `json:"last_name"`
-		Email     string `json:"email"`
-		Role      string `json:"role"`
-	}{
-		ID:        user.ID,
+	response := MeRequest{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
@@ -288,4 +288,6 @@ func Me(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(response)
+
+	slog.Info("auth request")
 }
