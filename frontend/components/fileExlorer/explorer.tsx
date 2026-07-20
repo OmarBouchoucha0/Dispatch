@@ -143,44 +143,71 @@ function FileTreeNode({
 
   if (node.type === "folder") {
     return (
-      <div>
-        <div
-          onClick={() => setExpanded(!expanded)}
-          className="group flex items-center gap-1 h-6 pl-2 cursor-pointer rounded-none"
-        >
-          {expanded ? (
-            <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
-          )}
-
-          <div className="flex items-center justify-between w-full">
-            <span className="truncate font-medium">
-              {node.name}
-            </span>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 px-3 opacity-0 hover:!text-primary-foreground transition-opacity duration-10 hover:!bg-transparent group-hover:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation()
-              }}
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <div>
+            <div
+              onClick={() => setExpanded(!expanded)}
+              className="group flex items-center gap-1 h-6 pl-2 cursor-pointer rounded-none"
             >
-              <Plus className="h-3 w-3 " />
-            </Button>
+              {expanded ? (
+                <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+              )}
+
+              <div className="flex items-center justify-between w-full">
+                {isEditing ? (
+                  <Input
+                    ref={inputRef}
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={commitRename}
+                    onKeyDown={handleKeyDown}
+                    className=" h-6 w-full px-0 py-0 border-none rounded-none bg-transparent text-sm text-foreground/80 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 "
+                  />
+                ) : (
+                  <span
+                    className={cn(
+                      "truncate",
+                      isSelected
+                        ? "text-accent-foreground"
+                        : "text-foreground/80"
+                    )}
+                  >
+                    {node.name}
+                  </span>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 px-3 opacity-0 hover:!text-primary-foreground transition-opacity duration-10 hover:!bg-transparent group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  <Plus className="h-3 w-3 " />
+                </Button>
+              </div>
+            </div>
+            {expanded && node.children?.map((child) => (
+              <FileTreeNode
+                key={child.id}
+                node={child}
+                depth={depth + 1}
+                selectedPath={selectedPath}
+                onSelect={onSelect}
+              />
+            ))}
           </div>
-        </div>
-        {expanded && node.children?.map((child) => (
-          <FileTreeNode
-            key={child.id}
-            node={child}
-            depth={depth + 1}
-            selectedPath={selectedPath}
-            onSelect={onSelect}
-          />
-        ))}
-      </div>
+
+        </ContextMenuTrigger>
+        <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+          <ContextMenuItem onSelect={() => startEditing()}>Rename Device</ContextMenuItem>
+          <ContextMenuItem variant="destructive" onSelect={() => deleteConfig(node.id)}>Delete Device</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     )
   }
 
