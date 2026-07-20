@@ -104,6 +104,22 @@ func AddConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
+
+	device, err := db.GetDeviceByID(ctx, req.DeviceID)
+	if err != nil {
+		slog.Error("get device", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ConfigListResponse{
+		ID:         config.ID,
+		DeviceID:   device.ID,
+		DeviceName: device.Name,
+		Name:       config.Name,
+		Content:    config.Content,
+	})
 	slog.Info("config added")
 }
 

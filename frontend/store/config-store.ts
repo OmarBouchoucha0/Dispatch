@@ -8,7 +8,7 @@ export type Config = {
   deviceID: string
   deviceName: string
   name: string
-  content: object
+  content: object | null
 }
 
 type ConfigStore = {
@@ -27,6 +27,7 @@ type ConfigStore = {
   openConfig: (config: Config) => void
   renameConfig: (id: string, name: string) => void
   deleteConfig: (id: string) => void
+  createConfig: (deviceID: string, deviceName: string, name: string) => void
   setSelectedConfig: (config: Config | null) => void
   setActiveConfig: (id: string) => void
 
@@ -91,8 +92,26 @@ export const useConfigStore = create<ConfigStore>()(
 
           const configs: Config[] = await res.json()
 
-          set({
-            configs,
+          set((state) => {
+            const newIds = new Set(configs.map((c) => c.id))
+            const remaining = state.openedConfigs.filter((c) =>
+              newIds.has(c.id)
+            )
+            const removed = state.openedConfigs.filter(
+              (c) => !newIds.has(c.id)
+            )
+            removed.forEach((c) =>
+              useEditorStore.getState().closeFile(c.id)
+            )
+
+            return {
+              configs,
+              openedConfigs: remaining,
+              activeConfig: state.activeConfig &&
+                newIds.has(state.activeConfig)
+                  ? state.activeConfig
+                  : (remaining[0]?.id ?? null),
+            }
           })
         } catch (err) {
           set({
@@ -154,6 +173,33 @@ export const useConfigStore = create<ConfigStore>()(
               state.activeConfig === id ? null : state.activeConfig,
           }
         }),
+      createConfig: (deviceID, deviceName, name) => {
+        const state = useConfigStore.getState()
+        const existingNames = state.configs
+          .filter((c) => c.deviceID === deviceID)
+          .map((c) => c.name)
+
+        let finalName = name
+        let counter = 2
+        while (existingNames.includes(finalName)) {
+          finalName = `${name}${counter}`
+          counter++
+        }
+
+        const newConfig: Config = {
+          id: finalName,
+          deviceID,
+          deviceName,
+          name: finalName,
+          content: null,
+        }
+
+        set((state) => ({
+          configs: [...state.configs, newConfig],
+        }))
+
+        useConfigStore.getState().openConfig(newConfig)
+      },
       setActiveConfig: (id) =>
         set({
           activeConfig: id,

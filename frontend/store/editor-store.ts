@@ -10,7 +10,7 @@ type EditorFile = {
 type EditorStore = {
   files: Record<string, EditorFile>
 
-  openFile: (id: string, content: object) => void
+  openFile: (id: string, content: object | null) => void
   updateFile: (id: string, content: string) => void
   closeFile: (id: string) => void
 
@@ -29,7 +29,7 @@ export const useEditorStore = create<EditorStore>()(
             ...state.files,
             [id]: {
               id,
-              content: JSON.stringify(content, null, 2),
+              content: content === null ? "" : JSON.stringify(content, null, 2),
               modified: false,
             },
           },

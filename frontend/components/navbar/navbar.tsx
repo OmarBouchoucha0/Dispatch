@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useConfigStore } from "@/store/config-store"
+import { useDeviceStore } from "@/store/device-store"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { useState } from "react"
@@ -17,13 +18,14 @@ import { commitConfig } from "@/lib/api"
 
 export function NavBar() {
   const sync = useConfigStore((state) => state.sync)
+  const syncDevices = useDeviceStore((state) => state.sync)
   const syncLoading = useConfigStore((state) => state.loading)
   const [commitLoading, setCommitLoading] = useState(false)
 
   async function handleSync() {
     try {
-      await sync()
-      toast.success("Configs synchronized")
+      await Promise.all([sync(), syncDevices()])
+      toast.success("Synchronized")
     } catch (err) {
       toast.error(
         err instanceof Error
