@@ -11,17 +11,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export type Device = {
-  Device: string
-  CreatedAt: string
+  id: string
+  name: string
+  created_at: string
 }
 
 export const columns: ColumnDef<Device>[] = [
   {
-    accessorKey: "Device",
-    header: "Device",
-  },
-  {
-    accessorKey: "Action",
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <Button
@@ -29,14 +26,14 @@ export const columns: ColumnDef<Device>[] = [
           className="-mx-3 h-10 justify-start px-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Status
+          Device
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
   },
   {
-    accessorKey: "CreatedAt",
+    accessorKey: "created_at",
     header: ({ column }) => {
       return (
         <Button

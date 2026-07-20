@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -14,7 +15,7 @@ type User struct {
 	Email        string
 	PasswordHash string
 	Role         string
-	CreatedAt    string
+	CreatedAt    time.Time
 }
 
 func GetUserByID(ctx context.Context, userID string) (*User, error) {

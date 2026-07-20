@@ -86,13 +86,13 @@ export function CommandPalette() {
                 <Monitor className="size-4" />
                 Devices
               </CommandItem>
-              <CommandItem onSelect={() => { setSettingsOpen(true); close() }}>
-                <Settings className="size-4" />
-                Settings
-              </CommandItem>
               <CommandItem onSelect={() => { setAccountOpen(true); close() }}>
                 <User className="size-4" />
                 Account
+              </CommandItem>
+              <CommandItem onSelect={() => { setSettingsOpen(true); close() }}>
+                <Settings className="size-4" />
+                Settings
               </CommandItem>
               <CommandItem onSelect={async () => { await logout(); router.push("/"); close() }}>
                 <LogOut className="size-4" />

@@ -5,14 +5,17 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type ListDevicesRequest struct {
-	Name string `json:"device_name"`
+type ListDevicesResponse struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func ListDevices(w http.ResponseWriter, r *http.Request) {
@@ -25,13 +28,17 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 
-	var req []RenameDeviceRequest
+	var res []ListDevicesResponse
 
 	for _, device := range devices {
-		req = append(req, RenameDeviceRequest{Name: device.Name})
+		res = append(res, ListDevicesResponse{
+			ID:        device.ID,
+			Name:      device.Name,
+			CreatedAt: device.CreatedAt,
+		})
 	}
 
-	err = json.NewEncoder(w).Encode(req)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		slog.Error("json encoding", "error", err)
 		http.Error(

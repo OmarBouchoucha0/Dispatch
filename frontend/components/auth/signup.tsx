@@ -45,8 +45,8 @@ export function Signup({ onSwitch }: SignupProps) {
           },
           credentials: "include",
           body: JSON.stringify({
-            firstName,
-            lastName,
+            first_name: firstName,
+            last_name: lastName,
             email,
             password,
           }),

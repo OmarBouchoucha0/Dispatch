@@ -90,10 +90,10 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-1 min-h-0 flex-col gap-4">
 
       <Input
-        placeholder="Filter users..."
-        value={(table.getColumn("Email")?.getFilterValue() as string) ?? ""}
+        placeholder="Filter emails..."
+        value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
         onChange={(event) =>
-          table.getColumn("Email")?.setFilterValue(event.target.value)
+          table.getColumn("email")?.setFilterValue(event.target.value)
         }
         className="max-w-sm shrink-0"
       />

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
@@ -46,10 +47,10 @@ func checkPassword(password string, hash string) bool {
 }
 
 type ListUsersRequest struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	CreatedAt string `json:"created_at"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {

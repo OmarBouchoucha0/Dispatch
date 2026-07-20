@@ -2,8 +2,9 @@ import { create } from "zustand"
 import { API_URL } from "@/lib/api"
 
 export type Device = {
-  Name: string
-  CreatedAt: string
+  id: string
+  name: string
+  created_at: string
 }
 
 type DeviceStore = {
@@ -31,7 +32,7 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
         throw new Error("Failed to fetch device")
       }
 
-      const devices: User[] = await res.json()
+      const devices: Device[] = await res.json()
       set({ devices: devices ?? [] })
     } catch (err) {
       set({

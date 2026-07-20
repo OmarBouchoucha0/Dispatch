@@ -6,7 +6,7 @@ import { DataTable } from "./data-table"
 import { columns } from "./columns"
 
 export function UserTable() {
-  const users = useUserStore((state) => state.logs)
+  const users = useUserStore((state) => state.users)
   const loading = useUserStore((state) => state.loading)
   const sync = useUserStore((state) => state.sync)
 

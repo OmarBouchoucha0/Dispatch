@@ -11,27 +11,27 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export type User = {
-  FirstName: string
-  LastName: string
-  Email: string
-  CreatedAt: string
+  first_name: string
+  last_name: string
+  email: string
+  created_at: string
 }
 
 export const columns: ColumnDef<User>[] = [
   {
-    accessorKey: "First name",
-    header: "FirstName",
+    accessorKey: "first_name",
+    header: "First Name",
   },
   {
-    accessorKey: "Last name",
-    header: "LastName"
+    accessorKey: "last_name",
+    header: "Last Name",
   },
   {
-    accessorKey: "Email",
+    accessorKey: "email",
     header: "Email",
   },
   {
-    accessorKey: "Action",
+    accessorKey: "created_at",
     header: ({ column }) => {
       return (
         <Button
@@ -39,22 +39,7 @@ export const columns: ColumnDef<User>[] = [
           className="-mx-3 h-10 justify-start px-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Status
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-  },
-  {
-    accessorKey: "CreatedAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="-mx-3 h-10 justify-start px-2"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Made At
+          Created At
           <ArrowUpDown className="h-4 w-4" />
         </Button>
       )

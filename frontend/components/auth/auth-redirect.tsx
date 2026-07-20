@@ -9,24 +9,22 @@ export function AuthRedirect() {
 
   useEffect(() => {
     async function checkUser() {
-      try {
-        const res = await fetch(
-          `${API_URL}/user/me`,
-          {
-            credentials: "include",
-          }
-        )
+      const res = await fetch(`${API_URL}/user/me`, {
+        credentials: "include",
+      })
 
-        if (res.ok) {
-          router.push("/files")
-        }
-      } catch {
-        // no valid session, stay on login page
+      if (res.ok) {
+        router.push("/files")
+        return
       }
+
+      if (res.status === 401) {
+        return
+      }
+      console.error("Unexpected error:", res.status)
     }
 
     checkUser()
   }, [router])
-
   return null
 }

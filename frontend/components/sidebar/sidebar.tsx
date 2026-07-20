@@ -1,5 +1,5 @@
 "use client"
-import { Files, History, Settings, Monitor, User, Users, LogOut } from "lucide-react"
+import { Files, Settings, Monitor, User, Users, LogOut, ScrollText } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import {
@@ -27,7 +27,7 @@ export function SideBar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
-  const user = useAuth()
+  const { user } = useAuth()
   const accountOpen = useUiStore((state) => state.accountOpen)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const settingsOpen = useUiStore((state) => state.settingsOpen)
@@ -55,7 +55,7 @@ export function SideBar() {
 
       <Tooltip >
         <TooltipTrigger asChild>
-          <SidebarIcon icon={History}
+          <SidebarIcon icon={ScrollText}
             onClick={() => router.push("/files?view=logs")}
             active={pathname === "/files" && view === "logs"}
           />

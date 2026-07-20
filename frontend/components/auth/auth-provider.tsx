@@ -37,23 +37,25 @@ export function AuthProvider({
 
   async function checkAuth() {
     setLoading(true)
-    try {
-      const res = await fetch(
-        `${API_URL}/user/me`,
-        {
-          credentials: "include",
-        }
-      )
 
-      if (!res.ok) {
+    try {
+      const res = await fetch(`${API_URL}/user/me`, {
+        credentials: "include",
+      })
+
+      if (res.status === 401) {
         setUser(null)
         return
       }
 
+      if (!res.ok) {
+        throw new Error("Failed to check authentication")
+      }
+
       const data = await res.json()
       setUser(data)
-
-    } catch {
+    } catch (err) {
+      console.print(err)
       setUser(null)
     } finally {
       setLoading(false)

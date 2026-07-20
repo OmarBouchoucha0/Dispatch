@@ -6,7 +6,7 @@ import { DataTable } from "./data-table"
 import { columns } from "./columns"
 
 export function DeviceTable() {
-  const devices = useDeviceStore((state) => state.logs)
+  const devices = useDeviceStore((state) => state.devices)
   const loading = useDeviceStore((state) => state.loading)
   const sync = useDeviceStore((state) => state.sync)
 

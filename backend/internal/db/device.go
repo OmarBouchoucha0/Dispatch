@@ -3,11 +3,13 @@ package db
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 type Device struct {
-	ID   string
-	Name string
+	ID        string
+	Name      string
+	CreatedAt time.Time
 }
 
 func GetDeviceByID(ctx context.Context, deviceID string) (*Device, error) {
@@ -58,7 +60,7 @@ func GetDevices(ctx context.Context) ([]Device, error) {
 	rows, err := Pool.Query(
 		ctx,
 		`
-        SELECT id, name
+        SELECT id, name, created_at
         FROM devices
         `,
 	)
@@ -71,6 +73,7 @@ func GetDevices(ctx context.Context) ([]Device, error) {
 		err := rows.Scan(
 			&device.ID,
 			&device.Name,
+			&device.CreatedAt,
 		)
 		if err != nil {
 			return nil, err

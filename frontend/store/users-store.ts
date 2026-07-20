@@ -2,10 +2,10 @@ import { create } from "zustand"
 import { API_URL } from "@/lib/api"
 
 export type User = {
-  FirstName: string
-  LastName: string
-  Email: string
-  CreatedAt: string
+  first_name: string
+  last_name: string
+  email: string
+  created_at: string
 }
 
 type UsersStore = {
