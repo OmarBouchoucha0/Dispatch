@@ -164,7 +164,7 @@ function FileTreeNode({
                     onChange={(e) => setEditValue(e.target.value)}
                     onBlur={commitRename}
                     onKeyDown={handleKeyDown}
-                    className=" h-6 w-full px-0 py-0 border-none rounded-none bg-transparent text-sm text-foreground/80 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 "
+                    className=" h-6 w-full px-0 py-0 border-none rounded-none !bg-transparent !text-xs  shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 ) : (
                   <span
@@ -238,7 +238,7 @@ function FileTreeNode({
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={commitRename}
               onKeyDown={handleKeyDown}
-              className=" h-6 w-full px-0 py-0 border-none rounded-none bg-transparent text-sm text-foreground/80 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 "
+              className=" h-6 w-full px-0 py-0 border-none rounded-none !bg-transparent !text-xs text-foreground/80 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 "
             />
           ) : (
             <span

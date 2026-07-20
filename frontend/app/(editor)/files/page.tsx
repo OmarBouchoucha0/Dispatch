@@ -8,6 +8,8 @@ import { Editor } from "@/components/editor/editor"
 import { Explorer } from "@/components/fileExlorer/explorer"
 import { ExplorerHeader } from "@/components/fileExlorer/explorer-header"
 import { LogsTable } from "@/components/logs/logs-table"
+import { UserTable } from "@/components/users/user-table"
+import { DeviceTable } from "@/components/devices/device-table"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Suspense, useEffect } from "react"
@@ -36,6 +38,22 @@ function HomeContent() {
     return (
       <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
         <LogsTable />
+      </div>
+    )
+  }
+
+  if (view === "users") {
+    return (
+      <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
+        <UserTable />
+      </div>
+    )
+  }
+
+  if (view === "devices") {
+    return (
+      <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
+        <DeviceTable />
       </div>
     )
   }

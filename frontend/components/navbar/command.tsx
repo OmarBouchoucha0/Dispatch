@@ -6,6 +6,7 @@ import {
   ScrollText,
   Settings,
   User,
+  Users,
   LogOut,
   FilePlus,
   Monitor,
@@ -76,6 +77,14 @@ export function CommandPalette() {
               <CommandItem onSelect={() => { router.push("/files?view=logs"); close() }}>
                 <ScrollText className="size-4" />
                 Logs
+              </CommandItem>
+              <CommandItem onSelect={() => { router.push("/files?view=users"); close() }}>
+                <Users className="size-4" />
+                Users
+              </CommandItem>
+              <CommandItem onSelect={() => { router.push("/files?view=devices"); close() }}>
+                <Monitor className="size-4" />
+                Devices
               </CommandItem>
               <CommandItem onSelect={() => { setSettingsOpen(true); close() }}>
                 <Settings className="size-4" />

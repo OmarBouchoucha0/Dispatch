@@ -45,9 +45,16 @@ func checkPassword(password string, hash string) bool {
 	return err == nil
 }
 
+type ListUsersRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	CreatedAt string `json:"created_at"`
+}
+
 func ListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	configs, err := db.GetUsers(ctx)
+	users, err := db.GetUsers(ctx)
 	if err != nil {
 		slog.Error("coudnt get users", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -55,7 +62,13 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 
-	err = json.NewEncoder(w).Encode(configs)
+	var req []ListUsersRequest
+
+	for _, user := range users {
+		req = append(req, ListUsersRequest{FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, CreatedAt: user.CreatedAt})
+	}
+
+	err = json.NewEncoder(w).Encode(req)
 	if err != nil {
 		slog.Error("json encoding", "error", err)
 		http.Error(

@@ -11,6 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+type ListDevicesRequest struct {
+	Name string `json:"device_name"`
+}
+
 func ListDevices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	devices, err := db.GetDevices(ctx)
@@ -21,7 +25,13 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 
-	err = json.NewEncoder(w).Encode(devices)
+	var req []RenameDeviceRequest
+
+	for _, device := range devices {
+		req = append(req, RenameDeviceRequest{Name: device.Name})
+	}
+
+	err = json.NewEncoder(w).Encode(req)
 	if err != nil {
 		slog.Error("json encoding", "error", err)
 		http.Error(

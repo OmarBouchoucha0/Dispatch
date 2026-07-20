@@ -1,5 +1,5 @@
 "use client"
-import { Files, History, Settings, User, LogOut } from "lucide-react"
+import { Files, History, Settings, Monitor, User, Users, LogOut } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import {
@@ -62,6 +62,30 @@ export function SideBar() {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Logs</p>
+        </TooltipContent >
+      </Tooltip>
+
+      <Tooltip >
+        <TooltipTrigger asChild>
+          <SidebarIcon icon={Users}
+            onClick={() => router.push("/files?view=users")}
+            active={pathname === "/files" && view === "users"}
+          />
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Users</p>
+        </TooltipContent >
+      </Tooltip>
+
+      <Tooltip >
+        <TooltipTrigger asChild>
+          <SidebarIcon icon={Monitor}
+            onClick={() => router.push("/files?view=devices")}
+            active={pathname === "/files" && view === "devices"}
+          />
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Devices</p>
         </TooltipContent >
       </Tooltip>
 

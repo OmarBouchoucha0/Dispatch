@@ -14,6 +14,7 @@ type User struct {
 	Email        string
 	PasswordHash string
 	Role         string
+	CreatedAt    string
 }
 
 func GetUserByID(ctx context.Context, userID string) (*User, error) {
@@ -50,7 +51,7 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	err := Pool.QueryRow(
 		ctx,
 		`
-        SELECT id, first_name, last_name, email, password_hash, role
+        SELECT id, first_name, last_name, email, password_hash, role, created_at
         FROM users
         WHERE email = $1
         `,
@@ -62,6 +63,7 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
+		&user.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -78,7 +80,7 @@ func GetUsers(ctx context.Context) ([]User, error) {
 	rows, err := Pool.Query(
 		ctx,
 		`
-        SELECT id, first_name, last_name, email
+        SELECT id, first_name, last_name, email, created_at
         FROM users
         `,
 	)
@@ -93,6 +95,7 @@ func GetUsers(ctx context.Context) ([]User, error) {
 			&user.FirstName,
 			&user.LastName,
 			&user.Email,
+			&user.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
