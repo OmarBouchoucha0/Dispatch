@@ -55,7 +55,7 @@ export function AuthProvider({
       const data = await res.json()
       setUser(data)
     } catch (err) {
-      console.print(err)
+      console.log(err)
       setUser(null)
     } finally {
       setLoading(false)
