@@ -34,6 +34,8 @@ type ConfigStore = {
   setActiveConfig: (id: string) => void
   pendingCreateFileDeviceID: string | null
   setPendingCreateFileDeviceID: (id: string | null) => void
+  lastActiveDeviceID: string | null
+  setLastActiveDeviceID: (id: string | null) => void
 
   clear: () => void
 }
@@ -153,6 +155,7 @@ export const useConfigStore = create<ConfigStore>()(
             : [...state.openedConfigs, config],
 
           activeConfig: config.id,
+          lastActiveDeviceID: config.deviceID,
         }))
       },
       renameConfig: (id, name) =>
@@ -259,6 +262,11 @@ export const useConfigStore = create<ConfigStore>()(
       setPendingCreateFileDeviceID: (id) =>
         set({ pendingCreateFileDeviceID: id }),
 
+      lastActiveDeviceID: null,
+
+      setLastActiveDeviceID: (id) =>
+        set({ lastActiveDeviceID: id }),
+
       clear: () =>
         set({
           configs: [],
@@ -266,6 +274,7 @@ export const useConfigStore = create<ConfigStore>()(
           openedConfigs: [],
           activeConfig: null,
           pendingCreateFileDeviceID: null,
+          lastActiveDeviceID: null,
           loading: false,
           error: null,
         }),

@@ -4,6 +4,12 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "@/components/ui/context-menu"
 import { Editor } from "@/components/editor/editor"
 import { Explorer } from "@/components/fileExlorer/explorer"
 import { ExplorerHeader } from "@/components/fileExlorer/explorer-header"
@@ -12,13 +18,27 @@ import { UserTable } from "@/components/users/user-table"
 import { DeviceTable } from "@/components/devices/device-table"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
-import { Suspense, useEffect } from "react"
+import { useConfigStore } from "@/store/config-store"
+import { useDeviceStore } from "@/store/device-store"
+import { Suspense, useEffect, useRef } from "react"
+import type { PanelImperativeHandle } from "react-resizable-panels"
 
 function HomeContent() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
+  const sidebarRef = useRef<PanelImperativeHandle | null>(null)
+
+  const activeConfig = useConfigStore((state) => state.activeConfig)
+  const closeConfig = useConfigStore((state) => state.closeConfig)
+  const lastActiveDeviceID = useConfigStore(
+    (state) => state.lastActiveDeviceID
+  )
+  const setPendingCreateFileDeviceID = useConfigStore(
+    (state) => state.setPendingCreateFileDeviceID
+  )
+  const devices = useDeviceStore((state) => state.devices)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -61,19 +81,52 @@ function HomeContent() {
   return (
     <ResizablePanelGroup orientation="horizontal" className="bg-sidebar">
       <ResizablePanel
+        panelRef={sidebarRef}
         defaultSize={200}
         minSize={150}
         collapsible={true}
         collapsedSize={0}
         className="bg-sidebar">
-        <ExplorerHeader />
-        <Explorer />
+        <ContextMenu>
+          <ContextMenuTrigger>
+            <div className="h-full">
+              <ExplorerHeader />
+              <Explorer />
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem
+              onSelect={() => {
+                const deviceID = lastActiveDeviceID ?? devices[0]?.id
+                if (deviceID) setPendingCreateFileDeviceID(deviceID)
+              }}
+            >
+              New File
+            </ContextMenuItem>
+            <ContextMenuItem
+              onSelect={() => { if (activeConfig) closeConfig(activeConfig) }}
+            >
+              Close File
+            </ContextMenuItem>
+            <ContextMenuItem
+              onSelect={() => {
+                if (sidebarRef.current?.isCollapsed()) {
+                  sidebarRef.current.expand()
+                } else {
+                  sidebarRef.current?.collapse()
+                }
+              }}
+            >
+              Toggle Sidebar
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel minSize={500} >
         <Editor />
       </ResizablePanel>
-    </ResizablePanelGroup>
+    </ResizablePanelGroup >
   );
 }
 

@@ -22,10 +22,13 @@ export function NavBar() {
   const syncLoading = useConfigStore((state) => state.loading)
   const activeConfig = useConfigStore((state) => state.activeConfig)
   const closeConfig = useConfigStore((state) => state.closeConfig)
-  const configs = useConfigStore((state) => state.configs)
   const setPendingCreateFileDeviceID = useConfigStore(
     (state) => state.setPendingCreateFileDeviceID
   )
+  const lastActiveDeviceID = useConfigStore(
+    (state) => state.lastActiveDeviceID
+  )
+  const devices = useDeviceStore((state) => state.devices)
   const [commitLoading, setCommitLoading] = useState(false)
 
   async function handleSync() {
@@ -72,9 +75,8 @@ export function NavBar() {
           >
             <DropdownMenuItem
               onSelect={() => {
-                if (!activeConfig) return
-                const config = configs.find((c) => c.id === activeConfig)
-                if (config) setPendingCreateFileDeviceID(config.deviceID)
+                const deviceID = lastActiveDeviceID ?? devices[0]?.id
+                if (deviceID) setPendingCreateFileDeviceID(deviceID)
               }}
             >
               New File

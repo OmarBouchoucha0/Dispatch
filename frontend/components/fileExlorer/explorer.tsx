@@ -157,6 +157,9 @@ function FileTreeNode({
   const setPendingCreateFileDeviceID = useConfigStore(
     (state) => state.setPendingCreateFileDeviceID
   )
+  const setLastActiveDeviceID = useConfigStore(
+    (state) => state.setLastActiveDeviceID
+  )
 
   useEffect(() => {
     if (!isEditing) return
@@ -244,7 +247,10 @@ function FileTreeNode({
         <ContextMenuTrigger>
           <div>
             <div
-              onClick={() => setExpanded(!expanded)}
+              onClick={() => {
+                setExpanded(!expanded)
+                setLastActiveDeviceID(node.id.replace("folder-", ""))
+              }}
               className="group flex items-center gap-1 h-6 pl-2 cursor-pointer rounded-none"
             >
               {expanded ? (
