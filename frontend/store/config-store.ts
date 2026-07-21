@@ -26,7 +26,9 @@ type ConfigStore = {
 
   openConfig: (config: Config) => void
   renameConfig: (id: string, name: string) => void
+  renameConfigsByDevice: (deviceID: string, newDeviceName: string) => void
   deleteConfig: (id: string) => void
+  deleteConfigsByDevice: (deviceID: string) => void
   createConfig: (deviceID: string, deviceName: string, name: string) => void
   setSelectedConfig: (config: Config | null) => void
   setActiveConfig: (id: string) => void
@@ -160,6 +162,19 @@ export const useConfigStore = create<ConfigStore>()(
             c.id === id ? { ...c, name } : c
           ),
         })),
+      renameConfigsByDevice: (deviceID, newDeviceName) =>
+        set((state) => ({
+          configs: state.configs.map((c) =>
+            c.deviceID === deviceID
+              ? { ...c, deviceName: newDeviceName }
+              : c
+          ),
+          openedConfigs: state.openedConfigs.map((c) =>
+            c.deviceID === deviceID
+              ? { ...c, deviceName: newDeviceName }
+              : c
+          ),
+        })),
       deleteConfig: (id) =>
         set((state) => {
           useEditorStore.getState().closeFile(id)
@@ -171,6 +186,33 @@ export const useConfigStore = create<ConfigStore>()(
             ),
             activeConfig:
               state.activeConfig === id ? null : state.activeConfig,
+          }
+        }),
+      deleteConfigsByDevice: (deviceID) =>
+        set((state) => {
+          const toDelete = state.configs.filter(
+            (c) => c.deviceID === deviceID
+          )
+          toDelete.forEach((c) =>
+            useEditorStore.getState().closeFile(c.id)
+          )
+
+          return {
+            configs: state.configs.filter(
+              (c) => c.deviceID !== deviceID
+            ),
+            openedConfigs: state.openedConfigs.filter(
+              (c) => c.deviceID !== deviceID
+            ),
+            activeConfig:
+              state.activeConfig &&
+              state.configs.some(
+                (c) =>
+                  c.id === state.activeConfig &&
+                  c.deviceID === deviceID
+              )
+                ? null
+                : state.activeConfig,
           }
         }),
       createConfig: (deviceID, deviceName, name) => {

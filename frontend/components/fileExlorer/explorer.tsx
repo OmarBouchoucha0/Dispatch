@@ -141,8 +141,16 @@ function FileTreeNode({
   const newFileInputRef = useRef<HTMLInputElement>(null)
   const isSelected = node.type === "file" && selectedPath === node.id
   const renameConfig = useConfigStore((state) => state.renameConfig)
+  const renameConfigsByDevice = useConfigStore(
+    (state) => state.renameConfigsByDevice
+  )
   const deleteConfig = useConfigStore((state) => state.deleteConfig)
+  const deleteConfigsByDevice = useConfigStore(
+    (state) => state.deleteConfigsByDevice
+  )
   const createConfig = useConfigStore((state) => state.createConfig)
+  const renameDevice = useDeviceStore((state) => state.renameDevice)
+  const deleteDevice = useDeviceStore((state) => state.deleteDevice)
 
   useEffect(() => {
     if (!isEditing) return
@@ -169,7 +177,13 @@ function FileTreeNode({
   function commitRename() {
     const trimmed = editValue.trim()
     if (trimmed && trimmed !== node.name) {
-      renameConfig(node.id, trimmed)
+      if (node.type === "folder") {
+        const deviceID = node.id.replace("folder-", "")
+        renameDevice(deviceID, trimmed)
+        renameConfigsByDevice(deviceID, trimmed)
+      } else {
+        renameConfig(node.id, trimmed)
+      }
     }
     setIsEditing(false)
   }
@@ -291,7 +305,16 @@ function FileTreeNode({
         </ContextMenuTrigger>
         <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
           <ContextMenuItem onSelect={() => startEditing()}>Rename Device</ContextMenuItem>
-          <ContextMenuItem variant="destructive" onSelect={() => deleteConfig(node.id)}>Delete Device</ContextMenuItem>
+          <ContextMenuItem
+            variant="destructive"
+            onSelect={() => {
+              const deviceID = node.id.replace("folder-", "")
+              deleteConfigsByDevice(deviceID)
+              deleteDevice(deviceID)
+            }}
+          >
+            Delete Device
+          </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
     )

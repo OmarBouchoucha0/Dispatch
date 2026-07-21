@@ -14,6 +14,8 @@ type DeviceStore = {
   error: string | null
   sync: () => Promise<void>
   createDevice: (name: string) => void
+  renameDevice: (id: string, name: string) => void
+  deleteDevice: (id: string) => void
   pendingDeviceName: string | null
   setPendingDeviceName: (name: string | null) => void
 }
@@ -60,6 +62,18 @@ export const useDeviceStore = create<DeviceStore>()(
               created_at: new Date().toISOString(),
             },
           ],
+        })),
+
+      renameDevice: (id, name) =>
+        set((state) => ({
+          devices: state.devices.map((d) =>
+            d.id === id ? { ...d, name } : d
+          ),
+        })),
+
+      deleteDevice: (id) =>
+        set((state) => ({
+          devices: state.devices.filter((d) => d.id !== id),
         })),
 
       pendingDeviceName: null,
