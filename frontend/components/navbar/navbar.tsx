@@ -20,6 +20,12 @@ export function NavBar() {
   const sync = useConfigStore((state) => state.sync)
   const syncDevices = useDeviceStore((state) => state.sync)
   const syncLoading = useConfigStore((state) => state.loading)
+  const activeConfig = useConfigStore((state) => state.activeConfig)
+  const closeConfig = useConfigStore((state) => state.closeConfig)
+  const configs = useConfigStore((state) => state.configs)
+  const setPendingCreateFileDeviceID = useConfigStore(
+    (state) => state.setPendingCreateFileDeviceID
+  )
   const [commitLoading, setCommitLoading] = useState(false)
 
   async function handleSync() {
@@ -60,17 +66,22 @@ export function NavBar() {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="start" className="w-full bg-secondary">
-            <DropdownMenuItem>
+          <DropdownMenuContent
+            align="start" className="w-full bg-secondary"
+            onCloseAutoFocus={(e) => e.preventDefault()}
+          >
+            <DropdownMenuItem
+              onSelect={() => {
+                if (!activeConfig) return
+                const config = configs.find((c) => c.id === activeConfig)
+                if (config) setPendingCreateFileDeviceID(config.deviceID)
+              }}
+            >
               New File
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              Open File
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => { if (activeConfig) closeConfig(activeConfig) }}
+            >
               Close File
             </DropdownMenuItem>
           </DropdownMenuContent>

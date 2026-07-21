@@ -151,6 +151,12 @@ function FileTreeNode({
   const createConfig = useConfigStore((state) => state.createConfig)
   const renameDevice = useDeviceStore((state) => state.renameDevice)
   const deleteDevice = useDeviceStore((state) => state.deleteDevice)
+  const pendingCreateFileDeviceID = useConfigStore(
+    (state) => state.pendingCreateFileDeviceID
+  )
+  const setPendingCreateFileDeviceID = useConfigStore(
+    (state) => state.setPendingCreateFileDeviceID
+  )
 
   useEffect(() => {
     if (!isEditing) return
@@ -168,6 +174,22 @@ function FileTreeNode({
       newFileInputRef.current?.focus()
     })
   }, [isCreating])
+
+  useEffect(() => {
+    if (
+      node.type !== "folder" ||
+      pendingCreateFileDeviceID === null
+    )
+      return
+
+    const deviceID = node.id.replace("folder-", "")
+    if (pendingCreateFileDeviceID === deviceID) {
+      setIsCreating(true)
+      setExpanded(true)
+      setNewFileName("")
+      setPendingCreateFileDeviceID(null)
+    }
+  }, [pendingCreateFileDeviceID])
 
   function startEditing() {
     setEditValue(node.name)

@@ -32,6 +32,8 @@ type ConfigStore = {
   createConfig: (deviceID: string, deviceName: string, name: string) => void
   setSelectedConfig: (config: Config | null) => void
   setActiveConfig: (id: string) => void
+  pendingCreateFileDeviceID: string | null
+  setPendingCreateFileDeviceID: (id: string | null) => void
 
   clear: () => void
 }
@@ -252,12 +254,18 @@ export const useConfigStore = create<ConfigStore>()(
           selectedConfig: config,
         }),
 
+      pendingCreateFileDeviceID: null,
+
+      setPendingCreateFileDeviceID: (id) =>
+        set({ pendingCreateFileDeviceID: id }),
+
       clear: () =>
         set({
           configs: [],
           selectedConfig: null,
           openedConfigs: [],
           activeConfig: null,
+          pendingCreateFileDeviceID: null,
           loading: false,
           error: null,
         }),
