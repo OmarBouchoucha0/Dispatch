@@ -28,8 +28,8 @@ export function TabsLine() {
               key={config.id}
               value={config.id}
               className="group rounded-none
-                          px-2 
-                          pl-5
+                          px-3 
+                          pl-7
                           border-r-border
                           data-[state=active]:!bg-background
                           data-[state=active]:!text-foreground
@@ -38,9 +38,9 @@ export function TabsLine() {
             >
               {config.name}
               <span
-                className="flex items-center opacity-0 group-hover:opacity-100 group-data-[state=active]:opacity-100 transition-opacity"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
+                className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
+                onPointerDown={(e) => {
+                  e.preventDefault()
                   e.stopPropagation()
                   closeConfig(config.id)
                 }}
