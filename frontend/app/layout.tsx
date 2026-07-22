@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/components/auth/auth-provider"
+import { MonacoPreloader } from "@/components/monaco-preloader"
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
@@ -46,6 +47,7 @@ export default function RootLayout({
           <TooltipProvider>
             <AuthProvider>
               {children}
+              <MonacoPreloader />
             </AuthProvider>
             <Toaster />
           </TooltipProvider>
