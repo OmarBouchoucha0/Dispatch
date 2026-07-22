@@ -10,7 +10,9 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex h-screen flex-col">
-      <NavBar />
+      <Suspense fallback={null}>
+        <NavBar />
+      </Suspense>
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <Suspense fallback={null}>
           <SideBar />
