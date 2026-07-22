@@ -1,7 +1,21 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Editor, { OnMount, loader } from "@monaco-editor/react"
+import { usePreferencesStore } from "@/store/preferences-store"
+import { useUiStore } from "@/store/ui-store"
+import { useTheme } from "next-themes"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import "@fontsource/jetbrains-mono"
+import "@fontsource/fira-code"
+import "@fontsource/source-code-pro"
+import "@fontsource/iosevka"
 
 // useMonaco from @monaco-editor/react has no .catch() on its cancelable promise
 // (from @monaco-editor/loader's makeCancelable). When the component unmounts
@@ -36,18 +50,27 @@ type CodeEditorProps = {
 
 export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
   const monaco = useSafeMonaco()
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null)
+  const editorFont = usePreferencesStore((state) => state.editorFont)
+  const editorFontSize = usePreferencesStore((state) => state.editorFontSize)
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  const setEditorInstance = useUiStore((state) => state.setEditorInstance)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    return () => setEditorInstance(null)
+  }, [setEditorInstance])
+
+  const editorTheme = !mounted || resolvedTheme === "dark"
+    ? "vscode-dark-2026"
+    : "vscode-light-2026"
 
   const handleMount: OnMount = (editor, monacoInstance) => {
+    editorRef.current = editor
+    setEditorInstance(editor)
     editor.updateOptions({ contextmenu: false })
-
-    editor.onContextMenu((e) => {
-      e.event.browserEvent.preventDefault()
-      e.event.browserEvent.stopPropagation()
-    })
-
-    editor.getDomNode()?.addEventListener("contextmenu", (domEvent) => {
-      domEvent.preventDefault()
-    })
 
     const commandPaletteAction = editor.getAction("editor.action.quickCommand")
       ; (commandPaletteAction as { dispose?: () => void } | null)?.dispose?.()
@@ -104,29 +127,132 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
         "peekViewResult.background": "#252526",
       },
     })
-    monaco.editor.setTheme("vscode-dark-2026")
-  }, [monaco])
+
+    monaco.editor.defineTheme("vscode-light-2026", {
+      base: "vs",
+      inherit: false,
+      rules: [
+        { token: "comment", foreground: "008000", fontStyle: "italic" },
+        { token: "string", foreground: "A31515" },
+        { token: "number", foreground: "098658" },
+        { token: "keyword", foreground: "0000FF" },
+        { token: "type", foreground: "267F99" },
+        { token: "function", foreground: "795E26" },
+        { token: "variable", foreground: "001080" },
+      ],
+      colors: {
+        "editor.background": "#FFFFFF",
+        "editor.foreground": "#000000",
+        "editorCursor.foreground": "#000000",
+        "editor.lineHighlightBackground": "#E8E8E8",
+        "editor.lineHighlightBorder": "#00000000",
+        "editorLineNumber.foreground": "#999999",
+        "editorLineNumber.activeForeground": "#333333",
+        "editor.selectionBackground": "#ADD6FF",
+        "editor.inactiveSelectionBackground": "#E5EBF1",
+        "editorIndentGuide.background": "#D3D3D3",
+        "editorIndentGuide.activeBackground": "#939393",
+        "editorBracketHighlight.foreground1": "#0431FA",
+        "editorBracketHighlight.foreground2": "#EF0083",
+        "editorBracketHighlight.foreground3": "#179FFF",
+        "editor.findMatchBackground": "#A8AC94",
+        "editor.findMatchHighlightBackground": "#E2E2E2",
+        "scrollbarSlider.background": "#64646466",
+        "scrollbarSlider.hoverBackground": "#646464B3",
+        "scrollbarSlider.activeBackground": "#BFBFBF66",
+        "editorSuggestWidget.background": "#F3F3F3",
+        "editorSuggestWidget.border": "#C5C5C5",
+        "editorSuggestWidget.selectedBackground": "#D6EBFF",
+        "editorSuggestWidget.foreground": "#000000",
+        "editorHoverWidget.background": "#EFEFF2",
+        "editorHoverWidget.border": "#C5C5C5",
+        "peekViewEditor.background": "#F2F8FC",
+        "peekViewResult.background": "#F2F8FC",
+      },
+    })
+
+    monaco.editor.setTheme(editorTheme)
+  }, [monaco, editorTheme])
 
   return (
-    <Editor
-      height="100%"
-      language={language}
-      value={value}
-      theme="vscode-dark-2026"
-      onChange={(v) => onChange?.(v ?? "")}
-      onMount={handleMount}
-      options={{
-        minimap: { enabled: false },
-        fontSize: 14,
-        fontFamily: "JetBrains Mono",
-        wordWrap: "on",
-        automaticLayout: true,
-        scrollBeyondLastLine: false,
-        smoothScrolling: true,
-        cursorBlinking: "smooth",
-        renderLineHighlight: "line",
-        padding: { top: 12, bottom: 12 },
-      }}
-    />
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <div className="h-full">
+          <Editor
+            height="100%"
+            language={language}
+            value={value}
+            theme={editorTheme}
+            onChange={(v) => onChange?.(v ?? "")}
+            onMount={handleMount}
+            options={{
+              minimap: { enabled: false },
+              fontSize: editorFontSize,
+              fontFamily: `'${editorFont}', monospace`,
+              wordWrap: "on",
+              automaticLayout: true,
+              scrollBeyondLastLine: false,
+              smoothScrolling: true,
+              cursorBlinking: "smooth",
+              renderLineHighlight: "line",
+              padding: { top: 12, bottom: 12 },
+            }}
+          />
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onSelect={async () => {
+          const editor = editorRef.current
+          if (!editor) return
+          const selection = editor.getSelection()
+          if (!selection) return
+          const text = editor.getModel()?.getValueInRange(selection)
+          if (text) {
+            await navigator.clipboard.writeText(text)
+            editor.executeEdits("context", [
+              { range: selection, text: "", forceMoveMarkers: true },
+            ])
+          }
+        }}>
+          Cut
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={async () => {
+          const editor = editorRef.current
+          if (!editor) return
+          const selection = editor.getSelection()
+          if (!selection) return
+          const text = editor.getModel()?.getValueInRange(selection)
+          if (text) await navigator.clipboard.writeText(text)
+        }}>
+          Copy
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={async () => {
+          const editor = editorRef.current
+          if (!editor) return
+          const text = await navigator.clipboard.readText()
+          if (!text) return
+          const pos = editor.getPosition()!
+          editor.executeEdits("context", [
+            {
+              range: {
+                startLineNumber: pos.lineNumber, startColumn: pos.column,
+                endLineNumber: pos.lineNumber, endColumn: pos.column,
+              },
+              text,
+            },
+          ])
+        }}>
+          Paste
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onSelect={() => editorRef.current?.trigger("context", "editor.action.selectAll", null)}>
+          Select All
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onSelect={() => editorRef.current?.trigger("context", "editor.action.formatDocument", null)}>
+          Format Code
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

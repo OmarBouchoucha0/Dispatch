@@ -110,6 +110,12 @@ export const useConfigStore = create<ConfigStore>()(
               useEditorStore.getState().closeFile(c.id)
             )
 
+            for (const config of configs) {
+              if (state.openedConfigs.some((c) => c.id === config.id)) {
+                useEditorStore.getState().openFile(config.id, config.content)
+              }
+            }
+
             return {
               configs,
               openedConfigs: remaining,

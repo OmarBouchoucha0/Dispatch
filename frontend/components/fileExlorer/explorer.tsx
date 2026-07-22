@@ -444,7 +444,6 @@ function DeviceCreateRow({
           onChange={(e) => setName(e.target.value)}
           onBlur={handleSubmit}
           onKeyDown={handleKeyDown}
-          placeholder="device name"
           className="h-6 w-full px-0 py-0 border-none rounded-none !bg-transparent !text-xs text-foreground/80 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>

@@ -36,7 +36,7 @@ export function TabsLine() {
                           data-[state=active]:!border-l-0
                           data-[state=active]:!border-y-0"
             >
-              {config.name}.json
+              {config.name}
               <span
                 className="flex items-center opacity-0 group-hover:opacity-100 group-data-[state=active]:opacity-100 transition-opacity"
                 onPointerDown={(e) => e.stopPropagation()}

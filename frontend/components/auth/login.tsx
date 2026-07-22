@@ -98,7 +98,6 @@ export function Login({ onSwitch }: LoginProps) {
             {loading && <Spinner data-icon="inline-start" />}
             {loading ? "Logging in..." : "Login"}
           </Button>
-          <Button variant="outline" className="w-full"> Login with Google </Button>
         </CardFooter>
       </form>
 

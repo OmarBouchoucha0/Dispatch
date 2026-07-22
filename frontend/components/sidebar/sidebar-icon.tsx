@@ -34,13 +34,12 @@ export const SidebarIcon = React.forwardRef<
       {...props}
     >
       <Icon
-        className="!h-6 !w-6 transition-colors"
+        className={`!h-6 !w-6 transition-colors ${
+          isLit
+            ? "text-foreground dark:text-primary-foreground"
+            : "text-muted-foreground"
+        }`}
         strokeWidth={1.5}
-        style={{
-          color: isLit
-            ? "var(--primary-foreground)"
-            : "var(--muted-foreground)",
-        }}
       />
     </Button>
   )

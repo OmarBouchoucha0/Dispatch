@@ -25,8 +25,9 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useConfigStore } from "@/store/config-store"
+import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
 import { commitConfig, logout } from "@/lib/api"
 import { toast } from "sonner"
@@ -34,9 +35,19 @@ import { toast } from "sonner"
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const view = searchParams.get("view") ?? "files"
   const sync = useConfigStore((state) => state.sync)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const setSettingsOpen = useUiStore((state) => state.setSettingsOpen)
+  const lastActiveDeviceID = useConfigStore((state) => state.lastActiveDeviceID)
+  const setPendingCreateFileDeviceID = useConfigStore(
+    (state) => state.setPendingCreateFileDeviceID
+  )
+  const devices = useDeviceStore((state) => state.devices)
+  const setPendingDeviceName = useDeviceStore(
+    (state) => state.setPendingDeviceName
+  )
 
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -101,11 +112,21 @@ export function CommandPalette() {
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Actions">
-              <CommandItem onSelect={() => { close() }}>
+              <CommandItem onSelect={() => {
+                const deviceID = lastActiveDeviceID ?? devices[0]?.id
+                if (!deviceID) { close(); return }
+                if (view !== "files") router.push("/files")
+                setPendingCreateFileDeviceID(deviceID)
+                close()
+              }}>
                 <FilePlus className="size-4" />
                 New Config
               </CommandItem>
-              <CommandItem onSelect={() => { close() }}>
+              <CommandItem onSelect={() => {
+                if (view !== "files") router.push("/files")
+                setPendingDeviceName("")
+                close()
+              }}>
                 <Monitor className="size-4" />
                 New Device
               </CommandItem>

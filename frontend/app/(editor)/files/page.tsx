@@ -9,6 +9,7 @@ import {
   ContextMenuTrigger,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
 } from "@/components/ui/context-menu"
 import { Editor } from "@/components/editor/editor"
 import { Explorer } from "@/components/fileExlorer/explorer"
@@ -20,6 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
+import { useUiStore } from "@/store/ui-store"
 import { Suspense, useEffect, useRef } from "react"
 import type { PanelImperativeHandle } from "react-resizable-panels"
 
@@ -39,12 +41,26 @@ function HomeContent() {
     (state) => state.setPendingCreateFileDeviceID
   )
   const devices = useDeviceStore((state) => state.devices)
+  const setPendingDeviceName = useDeviceStore(
+    (state) => state.setPendingDeviceName
+  )
+  const sidebarCollapsed = useUiStore((state) => state.sidebarCollapsed)
+  const setSidebarCollapsed = useUiStore((state) => state.setSidebarCollapsed)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/")
     }
   }, [loading, user, router])
+
+  useEffect(() => {
+    if (!sidebarRef.current) return
+    if (sidebarCollapsed && !sidebarRef.current.isCollapsed()) {
+      sidebarRef.current.collapse()
+    } else if (!sidebarCollapsed && sidebarRef.current.isCollapsed()) {
+      sidebarRef.current.expand()
+    }
+  }, [sidebarCollapsed])
 
   if (loading) {
     return <div>Loading...</div>
@@ -86,6 +102,11 @@ function HomeContent() {
         minSize={150}
         collapsible={true}
         collapsedSize={0}
+        onResize={() => {
+          if (sidebarRef.current) {
+            setSidebarCollapsed(sidebarRef.current.isCollapsed())
+          }
+        }}
         className="bg-sidebar">
         <ContextMenu>
           <ContextMenuTrigger>
@@ -94,32 +115,39 @@ function HomeContent() {
               <Explorer />
             </div>
           </ContextMenuTrigger>
-          <ContextMenuContent>
-            <ContextMenuItem
-              onSelect={() => {
-                const deviceID = lastActiveDeviceID ?? devices[0]?.id
-                if (deviceID) setPendingCreateFileDeviceID(deviceID)
-              }}
-            >
-              New File
-            </ContextMenuItem>
-            <ContextMenuItem
-              onSelect={() => { if (activeConfig) closeConfig(activeConfig) }}
-            >
-              Close File
-            </ContextMenuItem>
-            <ContextMenuItem
-              onSelect={() => {
-                if (sidebarRef.current?.isCollapsed()) {
-                  sidebarRef.current.expand()
-                } else {
-                  sidebarRef.current?.collapse()
-                }
-              }}
-            >
-              Toggle Sidebar
-            </ContextMenuItem>
-          </ContextMenuContent>
+            <ContextMenuContent>
+              <ContextMenuItem
+                onSelect={() => {
+                  const deviceID = lastActiveDeviceID ?? devices[0]?.id
+                  if (deviceID) setPendingCreateFileDeviceID(deviceID)
+                }}
+              >
+                New File
+              </ContextMenuItem>
+              <ContextMenuItem
+                onSelect={() => { if (activeConfig) closeConfig(activeConfig) }}
+              >
+                Close File
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onSelect={() => setPendingDeviceName("")}
+              >
+                New Device
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onSelect={() => {
+                  if (sidebarRef.current?.isCollapsed()) {
+                    sidebarRef.current.expand()
+                  } else {
+                    sidebarRef.current?.collapse()
+                  }
+                }}
+              >
+                Toggle Sidebar
+              </ContextMenuItem>
+            </ContextMenuContent>
         </ContextMenu>
       </ResizablePanel>
       <ResizableHandle />
