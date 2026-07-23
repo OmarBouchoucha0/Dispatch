@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { API_URL } from "@/lib/api"
 import { useEditorStore } from "@/store/editor-store"
+import { useCommitStore } from "@/store/commit-store"
 import { persist } from "zustand/middleware"
 
 export type Config = {
@@ -125,6 +126,8 @@ export const useConfigStore = create<ConfigStore>()(
                   : (remaining[0]?.id ?? null),
             }
           })
+
+          useCommitStore.getState().snapshot()
         } catch (err) {
           set({
             error:
@@ -186,46 +189,46 @@ export const useConfigStore = create<ConfigStore>()(
               : c
           ),
         })),
-      deleteConfig: (id) =>
-        set((state) => {
-          useEditorStore.getState().closeFile(id)
+      deleteConfig: (id) => {
+        useCommitStore.getState().markDeleted(id)
+        useEditorStore.getState().closeFile(id)
 
-          return {
-            configs: state.configs.filter((c) => c.id !== id),
-            openedConfigs: state.openedConfigs.filter(
-              (c) => c.id !== id
-            ),
-            activeConfig:
-              state.activeConfig === id ? null : state.activeConfig,
-          }
-        }),
-      deleteConfigsByDevice: (deviceID) =>
-        set((state) => {
-          const toDelete = state.configs.filter(
-            (c) => c.deviceID === deviceID
-          )
-          toDelete.forEach((c) =>
-            useEditorStore.getState().closeFile(c.id)
-          )
+        set((state) => ({
+          configs: state.configs.filter((c) => c.id !== id),
+          openedConfigs: state.openedConfigs.filter(
+            (c) => c.id !== id
+          ),
+          activeConfig:
+            state.activeConfig === id ? null : state.activeConfig,
+        }))
+      },
+      deleteConfigsByDevice: (deviceID) => {
+        const toDelete = useConfigStore
+          .getState()
+          .configs.filter((c) => c.deviceID === deviceID)
+        toDelete.forEach((c) => {
+          useCommitStore.getState().markDeleted(c.id)
+          useEditorStore.getState().closeFile(c.id)
+        })
 
-          return {
-            configs: state.configs.filter(
-              (c) => c.deviceID !== deviceID
-            ),
-            openedConfigs: state.openedConfigs.filter(
-              (c) => c.deviceID !== deviceID
-            ),
-            activeConfig:
-              state.activeConfig &&
-              state.configs.some(
-                (c) =>
-                  c.id === state.activeConfig &&
-                  c.deviceID === deviceID
-              )
-                ? null
-                : state.activeConfig,
-          }
-        }),
+        set((state) => ({
+          configs: state.configs.filter(
+            (c) => c.deviceID !== deviceID
+          ),
+          openedConfigs: state.openedConfigs.filter(
+            (c) => c.deviceID !== deviceID
+          ),
+          activeConfig:
+            state.activeConfig &&
+            state.configs.some(
+              (c) =>
+                c.id === state.activeConfig &&
+                c.deviceID === deviceID
+            )
+              ? null
+              : state.activeConfig,
+        }))
+      },
       createConfig: (deviceID, deviceName, name) => {
         const state = useConfigStore.getState()
         const existingNames = state.configs

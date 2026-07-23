@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { useCommitStore } from "@/store/commit-store"
 
 type EditorFile = {
   id: string
@@ -35,7 +36,8 @@ export const useEditorStore = create<EditorStore>()(
           },
         })),
 
-      updateFile: (id, content) =>
+      updateFile: (id, content) => {
+        useCommitStore.getState().markChanged(id, content)
         set((state) => ({
           files: {
             ...state.files,
@@ -45,7 +47,8 @@ export const useEditorStore = create<EditorStore>()(
               modified: true,
             },
           },
-        })),
+        }))
+      },
 
       closeFile: (id) =>
         set((state) => {

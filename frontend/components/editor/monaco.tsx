@@ -9,6 +9,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuShortcut,
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
@@ -201,6 +202,15 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
+        <ContextMenuItem onSelect={() => editorRef.current?.trigger("context", "undo", null)}>
+          Undo
+          <ContextMenuShortcut className="pl-4">ctrl-z</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => editorRef.current?.trigger("context", "redo", null)}>
+          Redo
+          <ContextMenuShortcut className="pl-4">ctrl-y</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
         <ContextMenuItem onSelect={async () => {
           const editor = editorRef.current
           if (!editor) return
@@ -215,6 +225,8 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
           }
         }}>
           Cut
+
+          <ContextMenuShortcut className="pl-4">ctrl-x</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuItem onSelect={async () => {
           const editor = editorRef.current
@@ -225,6 +237,7 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
           if (text) await navigator.clipboard.writeText(text)
         }}>
           Copy
+          <ContextMenuShortcut className="pl-4">ctrl-c</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuItem onSelect={async () => {
           const editor = editorRef.current
@@ -243,10 +256,12 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
           ])
         }}>
           Paste
+          <ContextMenuShortcut className="pl-4">ctrl-v</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => editorRef.current?.trigger("context", "editor.action.selectAll", null)}>
           Select All
+          <ContextMenuShortcut className="pl-4">ctrl-a</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => editorRef.current?.trigger("context", "editor.action.formatDocument", null)}>

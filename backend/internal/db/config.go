@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 )
 
 type Config struct {
@@ -95,14 +97,37 @@ func RenameConfig(ctx context.Context, originalName string, newName string) erro
 	return nil
 }
 
-func DeleteConfig(ctx context.Context, name string) error {
+func GetConfigByID(ctx context.Context, id string) (Config, error) {
+	var cfg Config
+	err := Pool.QueryRow(
+		ctx,
+		`
+		SELECT id, user_id, device_id, name, content
+		FROM configs
+		WHERE id = $1
+		`,
+		id,
+	).Scan(
+		&cfg.ID,
+		&cfg.UserID,
+		&cfg.DeviceID,
+		&cfg.Name,
+		&cfg.Content,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
+}
+
+func DeleteConfig(ctx context.Context, id string) error {
 	cmd, err := Pool.Exec(
 		ctx,
 		`
 		DELETE FROM configs
-		WHERE name = $1
+		WHERE id = $1
 		`,
-		name,
+		id,
 	)
 	if err != nil {
 		return err
@@ -113,4 +138,61 @@ func DeleteConfig(ctx context.Context, name string) error {
 	}
 
 	return nil
+}
+
+type CommitChange struct {
+	DeviceID string
+	Name     string
+	Content  json.RawMessage
+}
+
+func CommitConfigs(ctx context.Context, userID string, changed []CommitChange, deleted []string) error {
+	tx, err := Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	for _, c := range changed {
+		_, err := tx.Exec(ctx, `
+			INSERT INTO configs (user_id, device_id, name, content)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (device_id, name)
+			DO UPDATE SET content = EXCLUDED.content, updated_at = NOW()
+		`, userID, c.DeviceID, c.Name, c.Content)
+		if err != nil {
+			return fmt.Errorf("upsert config: %w", err)
+		}
+
+		_, err = tx.Exec(ctx, `
+			INSERT INTO logs (user_id, device_id, action, created_at)
+			VALUES ($1, $2, $3, $4)
+		`, userID, c.DeviceID, "Updated", time.Now())
+		if err != nil {
+			return fmt.Errorf("log changed: %w", err)
+		}
+	}
+
+	for _, id := range deleted {
+		var deviceID string
+		err := tx.QueryRow(ctx, `SELECT device_id FROM configs WHERE id = $1`, id).Scan(&deviceID)
+		if err != nil {
+			return fmt.Errorf("config not found: %s", id)
+		}
+
+		_, err = tx.Exec(ctx, `DELETE FROM configs WHERE id = $1`, id)
+		if err != nil {
+			return fmt.Errorf("delete config: %w", err)
+		}
+
+		_, err = tx.Exec(ctx, `
+			INSERT INTO logs (user_id, device_id, action, created_at)
+			VALUES ($1, $2, $3, $4)
+		`, userID, deviceID, "Deleted", time.Now())
+		if err != nil {
+			return fmt.Errorf("log deleted: %w", err)
+		}
+	}
+
+	return tx.Commit(ctx)
 }

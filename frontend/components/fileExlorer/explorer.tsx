@@ -2,8 +2,9 @@
 
 import { ChevronDown, ChevronRight, File } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Config, useConfigStore } from "@/store/config-store"
-import { Device, useDeviceStore } from "@/store/device-store"
+import { useConfigStore } from "@/store/config-store"
+import { useDeviceStore } from "@/store/device-store"
+import { buildTree, FileNode } from "@/lib/build-tree"
 import { useState, useRef, useEffect } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,51 +15,6 @@ import {
   ContextMenuContent,
   ContextMenuItem,
 } from "@/components/ui/context-menu"
-
-export type FileNode = {
-  id: string
-  name: string
-  type: "file" | "folder"
-  children?: FileNode[]
-}
-
-function buildTree(configs: Config[], devices: Device[]): FileNode[] {
-  const folderMap = new Map<string, FileNode>()
-
-  for (const device of devices) {
-    folderMap.set(device.id, {
-      id: `folder-${device.id}`,
-      name: device.name,
-      type: "folder",
-      children: [],
-    })
-  }
-
-  for (const config of configs) {
-    if (!folderMap.has(config.deviceID)) {
-      folderMap.set(config.deviceID, {
-        id: `folder-${config.deviceID}`,
-        name: config.deviceName,
-        type: "folder",
-        children: [],
-      })
-    }
-
-    const folder = folderMap.get(config.deviceID)!
-    folder.children!.push({
-      id: config.id,
-      type: "file",
-      name: config.name || `${config.deviceName}.json`,
-    })
-  }
-
-  return [...folderMap.values()]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((folder) => ({
-      ...folder,
-      children: folder.children!.sort((a, b) => a.name.localeCompare(b.name)),
-    }))
-}
 
 export function Explorer() {
   const configs = useConfigStore(

@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { CommandPalette } from "@/components/navbar/command"
-import { RefreshCw, GitCompare } from "lucide-react"
+import { RefreshCw, GitCompare, GitMerge } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +20,13 @@ import {
 } from "@/components/ui/dialog"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
+import { useCommitStore } from "@/store/commit-store"
 import { useUiStore } from "@/store/ui-store"
 import { usePreferencesStore } from "@/store/preferences-store"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { useState } from "react"
-import { commitConfig } from "@/lib/api"
+import { commitChanges } from "@/lib/api"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Diff } from "@/components/diff/diff"
 
@@ -51,8 +52,12 @@ export function NavBar() {
   const editorFontSize = usePreferencesStore((state) => state.editorFontSize)
   const setEditorFontSize = usePreferencesStore((state) => state.setEditorFontSize)
   const baseEditorFontSize = usePreferencesStore((state) => state.baseEditorFontSize)
+  const changedCount = useCommitStore((s) => Object.keys(s.changedFiles).length)
+  const deletedCount = useCommitStore((s) => Object.keys(s.deletedFiles).length)
+  const commitDialogOpen = useUiStore((s) => s.commitDialogOpen)
+  const setCommitDialogOpen = useUiStore((s) => s.setCommitDialogOpen)
+  const hasChanges = changedCount > 0 || deletedCount > 0
   const [commitLoading, setCommitLoading] = useState(false)
-  const [commitDialogOpen, setCommitDialogOpen] = useState(false)
 
   function triggerEditor(actionId: string) {
     editorInstance?.trigger("menu", actionId, null)
@@ -111,12 +116,11 @@ export function NavBar() {
     }
   }
 
-  async function handleSubmitFile(e: React.FormEvent) {
-    e.preventDefault()
+  async function handlePush() {
     setCommitLoading(true)
 
     try {
-      const ok = await commitConfig()
+      const ok = await commitChanges()
       if (ok) setCommitDialogOpen(false)
     } finally {
       setCommitLoading(false)
@@ -249,25 +253,31 @@ export function NavBar() {
 
       </div>
 
-      <div className="flex items-center gap-2">
-        <Dialog open={commitDialogOpen} onOpenChange={setCommitDialogOpen}>
-          <Button size="sm" onClick={() => setCommitDialogOpen(true)}>
-            <GitCompare />
-            Commit
-          </Button>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Commit Changes</DialogTitle>
-            </DialogHeader>
+      <Dialog open={commitDialogOpen} onOpenChange={setCommitDialogOpen}>
+        <Button size="sm" onClick={() => setCommitDialogOpen(true)}>
+          <GitCompare />
+          Commit
+        </Button>
+        <DialogContent
+          className="!max-w-[90vw] w-[90vw] h-[80vh] flex flex-col p-0 gap-0"
+        >
+
+          <div className="flex-1 min-h-0 overflow-auto">
             <Diff />
-            <DialogFooter>
-              <Button onClick={handleSubmitFile} disabled={commitLoading}>
-                {commitLoading ? "Saving..." : "Commit"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+
+          <DialogFooter className="shrink-0 flex-row justify-end border-t m-0">
+            <Button onClick={handlePush} disabled={!hasChanges || commitLoading}>
+              {commitLoading ? (
+                <Spinner />
+              ) : (
+                <GitMerge />
+              )}
+              Push
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -201,14 +201,14 @@ export function SideBar() {
         <Dialog open={accountOpen} onOpenChange={setAccountOpen}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <SidebarIcon icon={User} onClick={() => setAccountOpen(true)} />
+              <SidebarIcon icon={User} onClick={() => { setSettingsOpen(false); setAccountOpen(true) }} />
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Account</p>
             </TooltipContent>
           </Tooltip>
 
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px]" showCloseButton={false}>
             {mode === "profile" ? (
               <>
                 <DialogHeader>
@@ -277,14 +277,14 @@ export function SideBar() {
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <SidebarIcon icon={Settings} onClick={() => setSettingsOpen(true)} />
+              <SidebarIcon icon={Settings} onClick={() => { setAccountOpen(false); setSettingsOpen(true) }} />
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Settings</p>
             </TooltipContent>
           </Tooltip>
 
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px]" showCloseButton={false}>
             <DialogHeader>
               <DialogTitle>Settings</DialogTitle>
               <DialogDescription>

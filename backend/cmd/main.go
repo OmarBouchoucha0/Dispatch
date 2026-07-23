@@ -140,8 +140,9 @@ func mount() http.Handler {
 
 		r.Get("/", handler.ListConfigs)
 		r.Post("/", handler.AddConfig)
+		r.Post("/commit", handler.CommitConfigs)
 		r.Put("/rename", handler.RenameConfig)
-		r.Delete("/", handler.RenameConfig)
+		r.Delete("/{id}", handler.DeleteConfig)
 	})
 
 	r.Route("/device", func(r chi.Router) {

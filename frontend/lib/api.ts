@@ -1,6 +1,7 @@
 import { toast } from "sonner"
 import { useConfigStore } from "@/store/config-store"
 import { useEditorStore } from "@/store/editor-store"
+import { useCommitStore } from "@/store/commit-store"
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
@@ -8,47 +9,66 @@ if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not defined")
 }
 
-export async function commitConfig(): Promise<boolean> {
-  const state = useConfigStore.getState()
-  const files = useEditorStore.getState().files
+export async function commitChanges(): Promise<boolean> {
+  const { changedFiles, deletedFiles, snapshots } = useCommitStore.getState()
+  const configs = useConfigStore.getState().configs
 
-  const activeConfig = state.openedConfigs.find(
-    (config) => config.id === state.activeConfig
-  )
+  const changedEntries = Object.entries(changedFiles)
+  const deletedEntries = Object.entries(deletedFiles)
 
-  if (!activeConfig) {
-    toast.error("No file selected")
+  if (changedEntries.length === 0 && deletedEntries.length === 0) {
+    toast.error("No changes to commit")
     return false
   }
 
-  const editorFile = files[activeConfig.id]
+  const changed = changedEntries.map(([id, content]) => {
+    const config = configs.find((c) => c.id === id)
+    if (!config) return null
+    return {
+      device_id: config.deviceID,
+      name: config.name,
+      content: JSON.parse(content),
+    }
+  })
 
-  if (!editorFile) {
-    toast.error("No editor content found")
+  if (changed.some((c) => c === null)) {
+    toast.error("Some changed configs not found")
     return false
   }
+
+  const deleted = deletedEntries.map(([id]) => id)
 
   try {
-    const res = await fetch(`${API_URL}/config`, {
+    const res = await fetch(`${API_URL}/config/commit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({
-        device_id: activeConfig.deviceID,
-        name: activeConfig.name,
-        content: JSON.parse(editorFile.content),
-      }),
+      body: JSON.stringify({ changed, deleted }),
     })
 
     if (!res.ok) {
-      toast.error("Failed to save config")
+      toast.error("Commit failed")
       return false
     }
 
-    toast.success("Config saved")
+    const newSnapshots = { ...snapshots }
+    for (const [id, content] of changedEntries) {
+      newSnapshots[id] = content
+    }
+    for (const [id] of deletedEntries) {
+      delete newSnapshots[id]
+    }
+
+    useCommitStore.setState({
+      snapshots: newSnapshots,
+      changedFiles: {},
+      deletedFiles: {},
+    })
+
+    toast.success("Committed successfully")
     return true
   } catch {
-    toast.error("Invalid JSON or server error")
+    toast.error("Server error during commit")
     return false
   }
 }

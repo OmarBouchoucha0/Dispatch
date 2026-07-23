@@ -29,7 +29,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
-import { commitConfig, logout } from "@/lib/api"
+import { logout } from "@/lib/api"
 import { toast } from "sonner"
 
 export function CommandPalette() {
@@ -40,6 +40,7 @@ export function CommandPalette() {
   const sync = useConfigStore((state) => state.sync)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const setSettingsOpen = useUiStore((state) => state.setSettingsOpen)
+  const setCommitDialogOpen = useUiStore((state) => state.setCommitDialogOpen)
   const lastActiveDeviceID = useConfigStore((state) => state.lastActiveDeviceID)
   const setPendingCreateFileDeviceID = useConfigStore(
     (state) => state.setPendingCreateFileDeviceID
@@ -97,11 +98,11 @@ export function CommandPalette() {
                 <Monitor className="size-4" />
                 Devices
               </CommandItem>
-              <CommandItem onSelect={() => { setAccountOpen(true); close() }}>
+              <CommandItem onSelect={() => { setSettingsOpen(false); setAccountOpen(true); close() }}>
                 <User className="size-4" />
                 Account
               </CommandItem>
-              <CommandItem onSelect={() => { setSettingsOpen(true); close() }}>
+              <CommandItem onSelect={() => { setAccountOpen(false); setSettingsOpen(true); close() }}>
                 <Settings className="size-4" />
                 Settings
               </CommandItem>
@@ -130,7 +131,7 @@ export function CommandPalette() {
                 <Monitor className="size-4" />
                 New Device
               </CommandItem>
-              <CommandItem onSelect={async () => { await commitConfig(); close() }}>
+              <CommandItem onSelect={() => { setCommitDialogOpen(true); close() }}>
                 <GitCommitVertical className="size-4" />
                 Commit
               </CommandItem>

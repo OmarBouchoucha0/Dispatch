@@ -1,0 +1,1 @@
+ALTER TABLE configs ALTER COLUMN content TYPE JSON;
