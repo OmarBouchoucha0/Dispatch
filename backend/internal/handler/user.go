@@ -255,6 +255,92 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+type UpdateMeRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+}
+
+func UpdateMe(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req UpdateMeRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	err = db.UpdateUser(ctx, claims.UserID, req.FirstName, req.LastName, req.Email)
+	if err != nil {
+		slog.Error("update user", "error", err)
+		http.Error(w, "failed to update user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	slog.Info("user updated")
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+func ChangePassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	claims, ok := ctx.Value(auth.UserKey).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req ChangePasswordRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	user, err := db.GetUserByID(ctx, claims.UserID)
+	if err != nil {
+		slog.Error("get user", "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if !checkPassword(req.CurrentPassword, user.PasswordHash) {
+		http.Error(w, "current password is incorrect", http.StatusUnauthorized)
+		return
+	}
+
+	pHash, err := hashPassword(req.NewPassword)
+	if err != nil {
+		slog.Error("password hashing", "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = db.UpdatePassword(ctx, claims.UserID, pHash)
+	if err != nil {
+		slog.Error("update password", "error", err)
+		http.Error(w, "failed to update password", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	slog.Info("password updated")
+}
+
 type MeRequest struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`

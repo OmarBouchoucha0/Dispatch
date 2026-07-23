@@ -87,7 +87,15 @@ export function Login({ onSwitch }: LoginProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label>Password</Label>
+              <div className="flex items-center">
+                <Label htmlFor="password-spacing">Password</Label>
+                <a
+                  href="#"
+                  className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                >
+                  Forgot your password?
+                </a>
+              </div>
               <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
           </div>

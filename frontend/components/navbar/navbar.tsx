@@ -9,6 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
@@ -18,6 +27,7 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { commitConfig } from "@/lib/api"
 import { useRouter, useSearchParams } from "next/navigation"
+import { Diff } from "@/components/diff/diff"
 
 export function NavBar() {
   const router = useRouter()
@@ -42,6 +52,7 @@ export function NavBar() {
   const setEditorFontSize = usePreferencesStore((state) => state.setEditorFontSize)
   const baseEditorFontSize = usePreferencesStore((state) => state.baseEditorFontSize)
   const [commitLoading, setCommitLoading] = useState(false)
+  const [commitDialogOpen, setCommitDialogOpen] = useState(false)
 
   function triggerEditor(actionId: string) {
     editorInstance?.trigger("menu", actionId, null)
@@ -105,7 +116,8 @@ export function NavBar() {
     setCommitLoading(true)
 
     try {
-      await commitConfig()
+      const ok = await commitConfig()
+      if (ok) setCommitDialogOpen(false)
     } finally {
       setCommitLoading(false)
     }
@@ -238,15 +250,23 @@ export function NavBar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={handleSubmitFile} disabled={commitLoading}>
-
-          {commitLoading ? (
-            <Spinner data-icon="inline-start" />
-          ) : (
+        <Dialog open={commitDialogOpen} onOpenChange={setCommitDialogOpen}>
+          <Button size="sm" onClick={() => setCommitDialogOpen(true)}>
             <GitCompare />
-          )}
-          Commit
-        </Button>
+            Commit
+          </Button>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Commit Changes</DialogTitle>
+            </DialogHeader>
+            <Diff />
+            <DialogFooter>
+              <Button onClick={handleSubmitFile} disabled={commitLoading}>
+                {commitLoading ? "Saving..." : "Commit"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

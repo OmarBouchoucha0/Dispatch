@@ -109,6 +109,32 @@ func GetUsers(ctx context.Context) ([]User, error) {
 	return users, nil
 }
 
+func UpdatePassword(ctx context.Context, userID, passwordHash string) error {
+	_, err := Pool.Exec(
+		ctx,
+		`
+		UPDATE users
+		SET password_hash = $1
+		WHERE id = $2
+		`,
+		passwordHash, userID,
+	)
+	return err
+}
+
+func UpdateUser(ctx context.Context, userID, firstName, lastName, email string) error {
+	_, err := Pool.Exec(
+		ctx,
+		`
+		UPDATE users
+		SET first_name = $1, last_name = $2, email = $3
+		WHERE id = $4
+		`,
+		firstName, lastName, email, userID,
+	)
+	return err
+}
+
 func AddUser(ctx context.Context, user *User) error {
 	err := Pool.QueryRow(
 		ctx,

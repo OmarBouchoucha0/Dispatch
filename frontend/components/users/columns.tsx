@@ -2,6 +2,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { formatDate } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +45,7 @@ export const columns: ColumnDef<User>[] = [
         </Button>
       )
     },
+    cell: ({ row }) => formatDate(row.getValue("created_at")),
   },
   {
     id: "actions",

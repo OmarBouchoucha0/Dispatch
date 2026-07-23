@@ -128,6 +128,8 @@ func mount() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.Middleware)
 			r.Get("/me", handler.Me)
+			r.Put("/me", handler.UpdateMe)
+			r.Put("/password", handler.ChangePassword)
 			r.Get("/", handler.ListUsers)
 			r.Post("/", handler.AddUser)
 		})

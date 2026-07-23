@@ -1,4 +1,5 @@
 "use client"
+import { useEffect, useState } from "react"
 import { Files, Settings, Monitor, User, Users, LogOut, ScrollText } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
@@ -25,7 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { logout } from "@/lib/api"
+import { API_URL, logout } from "@/lib/api"
+import { toast } from "sonner"
 import { useTheme } from "next-themes"
 import { useUiStore } from "@/store/ui-store"
 import { usePreferencesStore } from "@/store/preferences-store"
@@ -36,11 +38,101 @@ export function SideBar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
-  const { user } = useAuth()
+  const { user, refresh } = useAuth()
+  const [firstName, setFirstName] = useState(user?.firstName ?? "")
+  const [lastName, setLastName] = useState(user?.lastName ?? "")
+  const [email, setEmail] = useState(user?.email ?? "")
+  const [saving, setSaving] = useState(false)
+  const [mode, setMode] = useState<"profile" | "password">("profile")
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [changingPassword, setChangingPassword] = useState(false)
   const accountOpen = useUiStore((state) => state.accountOpen)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const settingsOpen = useUiStore((state) => state.settingsOpen)
   const setSettingsOpen = useUiStore((state) => state.setSettingsOpen)
+
+  useEffect(() => {
+    setFirstName(user?.firstName ?? "")
+    setLastName(user?.lastName ?? "")
+    setEmail(user?.email ?? "")
+  }, [user])
+
+  useEffect(() => {
+    if (!accountOpen) {
+      setMode("profile")
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+    }
+  }, [accountOpen])
+
+  async function handleChangePassword() {
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+
+    if (currentPassword === newPassword) {
+      toast.error("New password must be different from current password")
+      return
+    }
+
+    setChangingPassword(true)
+    try {
+      const res = await fetch(`${API_URL}/user/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        toast.error(text || "Failed to update password")
+        return
+      }
+
+      toast.success("Password updated")
+      setAccountOpen(false)
+    } catch {
+      toast.error("Server error")
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const res = await fetch(`${API_URL}/user/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+        }),
+      })
+
+      if (!res.ok) {
+        toast.error("Failed to update account")
+        return
+      }
+
+      toast.success("Account updated")
+      await refresh()
+    } catch {
+      toast.error("Server error")
+    } finally {
+      setSaving(false)
+    }
+  }
   const editorFont = usePreferencesStore((state) => state.editorFont)
   const editorFontSize = usePreferencesStore((state) => state.editorFontSize)
   const baseEditorFontSize = usePreferencesStore((state) => state.baseEditorFontSize)
@@ -117,32 +209,67 @@ export function SideBar() {
           </Tooltip>
 
           <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Account</DialogTitle>
-              <DialogDescription>
-                Manage your account details here.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" type="text" required value={user?.firstName ?? ""} readOnly />
-              </div>
+            {mode === "profile" ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Account</DialogTitle>
+                  <DialogDescription>
+                    Manage your account details here.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-2">
+                  <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input id="firstName" type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                  </div>
 
-              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" type="text" required value={user?.lastName ?? ""} readOnly />
-              </div>
+                  <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input id="lastName" type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                  </div>
 
-              <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={user?.email ?? ""} readOnly />
-              </div>
+                  <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
 
-            </div>
-            <DialogFooter>
-              <Button type="submit">Save changes</Button>
-            </DialogFooter>
+                </div>
+                <DialogFooter>
+                  <Button variant="secondary" onClick={() => setMode("password")}>Reset Password</Button>
+                  <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Reset Password</DialogTitle>
+                  <DialogDescription>
+                    Enter your current password and a new password.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-2">
+                  <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                  </div>
+
+                  <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                  </div>
+
+                  <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                  </div>
+
+                </div>
+                <DialogFooter>
+                  <Button variant="secondary" onClick={() => setMode("profile")}>Back</Button>
+                  <Button onClick={handleChangePassword} disabled={changingPassword}>{changingPassword ? "Updating..." : "Update Password"}</Button>
+                </DialogFooter>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 
