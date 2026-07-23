@@ -27,18 +27,24 @@ export function TabsLine() {
             <TabsTrigger
               key={config.id}
               value={config.id}
-              className="group rounded-none
-                          px-3 
-                          pl-7
+              className="group 
+                          rounded-none
+                          relative
                           border-r-border
+                          text-xs
+                          px-2
+                          pl-5
                           data-[state=active]:!bg-background
                           data-[state=active]:!text-foreground
-                          data-[state=active]:!border-l-0
-                          data-[state=active]:!border-y-0"
+                          data-[state=active]:!border-t-primary
+                          data-[state=active]:!border-t-2
+                          data-[state=active]:!border-x-0
+                          data-[state=active]:!border-b-0
+              "
             >
               {config.name}
-              <span
-                className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
+              < span
+                className="flex items-center h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
                 onPointerDown={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -50,16 +56,18 @@ export function TabsLine() {
             </TabsTrigger>
           ))}
         </TabsList>
-      </div>
-      {openedConfigs.map((config) => (
-        <TabsContent
-          key={config.id}
-          value={config.id}
-          className="mt-0 flex-1 min-h-0 h-full overflow-hidden"
-        >
-          <ConfigEditor configId={config.id} />
-        </TabsContent>
-      ))}
+      </div >
+      {
+        openedConfigs.map((config) => (
+          <TabsContent
+            key={config.id}
+            value={config.id}
+            className="mt-0 flex-1 min-h-0 h-full overflow-hidden"
+          >
+            <ConfigEditor configId={config.id} />
+          </TabsContent>
+        ))
+      }
     </Tabs >
   )
 }

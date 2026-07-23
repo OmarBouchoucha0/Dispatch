@@ -52,7 +52,7 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
 
     if (!(id in state.snapshots)) {
       set((state) => {
-        const { [id]: _, ...rest } = state.changedFiles
+        const { [id]: _ /* eslint-disable-line @typescript-eslint/no-unused-vars */, ...rest } = state.changedFiles
         return { changedFiles: rest }
       })
       return
@@ -60,7 +60,7 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
 
     const content = state.snapshots[id]
     set((state) => {
-      const { [id]: _, ...rest } = state.changedFiles
+      const { [id]: _ /* eslint-disable-line @typescript-eslint/no-unused-vars */, ...rest } = state.changedFiles
       return {
         deletedFiles: {
           ...state.deletedFiles,
@@ -79,7 +79,7 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
 
   unmarkDeleted: (id) => {
     set((state) => {
-      const { [id]: _, ...rest } = state.deletedFiles
+      const { [id]: _ /* eslint-disable-line @typescript-eslint/no-unused-vars */, ...rest } = state.deletedFiles
       return { deletedFiles: rest }
     })
   },

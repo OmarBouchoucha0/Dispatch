@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Files, Settings, Monitor, User, Users, LogOut, ScrollText } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
@@ -52,21 +52,20 @@ export function SideBar() {
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const settingsOpen = useUiStore((state) => state.settingsOpen)
   const setSettingsOpen = useUiStore((state) => state.setSettingsOpen)
+  const setCommitDialogOpen = useUiStore((state) => state.setCommitDialogOpen)
 
-  useEffect(() => {
+  function syncFormFromUser() {
     setFirstName(user?.firstName ?? "")
     setLastName(user?.lastName ?? "")
     setEmail(user?.email ?? "")
-  }, [user])
+  }
 
-  useEffect(() => {
-    if (!accountOpen) {
-      setMode("profile")
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
-    }
-  }, [accountOpen])
+  function resetForm() {
+    setMode("profile")
+    setCurrentPassword("")
+    setNewPassword("")
+    setConfirmPassword("")
+  }
 
   async function handleChangePassword() {
     if (newPassword !== confirmPassword) {
@@ -134,7 +133,6 @@ export function SideBar() {
     }
   }
   const editorFont = usePreferencesStore((state) => state.editorFont)
-  const editorFontSize = usePreferencesStore((state) => state.editorFontSize)
   const baseEditorFontSize = usePreferencesStore((state) => state.baseEditorFontSize)
   const setEditorFont = usePreferencesStore((state) => state.setEditorFont)
   const setEditorFontSize = usePreferencesStore((state) => state.setEditorFontSize)
@@ -198,10 +196,14 @@ export function SideBar() {
       </Tooltip>
 
       <div className="mt-auto flex flex-col items-center gap-0">
-        <Dialog open={accountOpen} onOpenChange={setAccountOpen}>
+        <Dialog open={accountOpen} onOpenChange={(open) => {
+          if (open) syncFormFromUser()
+          else resetForm()
+          setAccountOpen(open)
+        }}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <SidebarIcon icon={User} onClick={() => { setSettingsOpen(false); setAccountOpen(true) }} />
+              <SidebarIcon icon={User} onClick={() => { setSettingsOpen(false); setCommitDialogOpen(false); syncFormFromUser(); setAccountOpen(true) }} />
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Account</p>
@@ -277,7 +279,7 @@ export function SideBar() {
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <SidebarIcon icon={Settings} onClick={() => { setAccountOpen(false); setSettingsOpen(true) }} />
+              <SidebarIcon icon={Settings} onClick={() => { setAccountOpen(false); setCommitDialogOpen(false); setSettingsOpen(true) }} />
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Settings</p>

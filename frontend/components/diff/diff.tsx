@@ -1,14 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { MultiFileDiff } from "@pierre/diffs/react"
 import { cn } from "@/lib/utils"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useCommitStore } from "@/store/commit-store"
 import { buildTree } from "@/lib/build-tree"
+import { useTheme } from "next-themes"
 import type { FileNode } from "@/lib/build-tree"
-import { ChevronDown, ChevronRight, File, Plus, Minus } from "lucide-react"
+import { ChevronDown, ChevronRight } from "lucide-react"
 
 export function Diff() {
   const configs = useConfigStore((s) => s.configs)
@@ -17,17 +18,8 @@ export function Diff() {
   const changedFiles = useCommitStore((s) => s.changedFiles)
   const deletedFiles = useCommitStore((s) => s.deletedFiles)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [theme, setTheme] = useState("dark-plus")
+  const { resolvedTheme } = useTheme()
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains("dark")
-      setTheme(isDark ? "dark-plus" : "light-plus")
-    })
-
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
-    return () => observer.disconnect()
-  }, [])
 
   const deletedItems = Object.values(deletedFiles).map((d) => ({
     id: d.id,
@@ -43,12 +35,7 @@ export function Diff() {
     (folder) => folder.children && folder.children.length > 0
   )
 
-  useEffect(() => {
-    if (!selectedId && tree.length > 0) {
-      const first = tree[0].children?.[0]
-      if (first) setSelectedId(first.id)
-    }
-  }, [tree, selectedId])
+  const effectiveSelectedId = selectedId ?? tree[0]?.children?.[0]?.id ?? null
 
   function getContent(id: string) {
     const isDeleted = id in deletedFiles
@@ -69,25 +56,27 @@ export function Diff() {
     return { oldContent, newContent, isDeleted }
   }
 
-  const selectedFile = selectedId ? getContent(selectedId) : null
+  const selectedFile = effectiveSelectedId ? getContent(effectiveSelectedId) : null
 
-  const selectedName = selectedId
-    ? deletedFiles[selectedId]?.name ??
-      configs.find((c) => c.id === selectedId)?.name ??
-      selectedId
+  const selectedName = effectiveSelectedId
+    ? deletedFiles[effectiveSelectedId]?.name ??
+    configs.find((c) => c.id === effectiveSelectedId)?.name ??
+    effectiveSelectedId
     : null
 
   const diffFile = selectedFile && selectedName
     ? {
-        oldFile: {
-          name: selectedName,
-          contents: selectedFile.oldContent,
-        },
-        newFile: {
-          name: selectedName,
-          contents: selectedFile.newContent,
-        },
-      }
+      oldFile: {
+        name: selectedName,
+        contents: selectedFile.oldContent,
+        lang: "json",
+      },
+      newFile: {
+        name: selectedName,
+        contents: selectedFile.newContent,
+        lang: "json",
+      },
+    }
     : null
 
   const newFiles = new Set(
@@ -125,8 +114,17 @@ export function Diff() {
           <MultiFileDiff
             oldFile={diffFile.oldFile}
             newFile={diffFile.newFile}
-            options={{ theme, overflow: "wrap" }}
-            style={{ height: "100%" }}
+            options={{
+              theme: {
+                dark: "pierre-dark",
+                light: "pierre-light",
+              },
+              overflow: "wrap",
+              themeType: resolvedTheme === "dark" ? "dark" : "light",
+            }}
+            style={{
+              height: "100%",
+            }}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
@@ -183,23 +181,15 @@ function DiffTreeNode({ node, depth, selectedId, onSelect, deletedFiles, newFile
     )
   }
 
-  const icon = isNew ? Plus : isDeleted ? Minus : File
-  const Icon = icon
-
-  const iconColor = isNew
-    ? "text-green-600"
-    : isDeleted
-      ? "text-destructive"
-      : "text-muted-foreground"
 
   const textColor =
-    isSelected
-      ? "text-accent-foreground"
-      : isNew
-        ? "text-green-700"
-        : isDeleted
-          ? "text-destructive/80"
-          : "text-foreground/80"
+    isNew
+      ? "text-[#5ecc71]"
+      : isDeleted
+        ? "text-destructive"
+        : isSelected
+          ? "text-accent-foreground"
+          : "text-foreground"
 
   return (
     <div
@@ -207,14 +197,13 @@ function DiffTreeNode({ node, depth, selectedId, onSelect, deletedFiles, newFile
       className={cn(
         "flex items-center gap-1 h-6 px-2 cursor-pointer rounded-none",
         "hover:bg-accent/50 transition-colors",
-        isSelected && "bg-accent text-accent-foreground",
-        isDeleted && !isSelected && "text-destructive/80",
-        isNew && !isSelected && "text-green-700"
+        isSelected && "bg-accent",
       )}
       style={{ paddingLeft: `${depth * 20 + 8}px` }}
     >
-      <Icon className={cn("!h-3.5 !w-3.5 shrink-0", iconColor)} strokeWidth={1.5} />
-      <span className={cn("truncate", textColor)}>{node.name}</span>
+      <span className={cn("truncate", textColor)}>
+        {node.name}
+      </span>
     </div>
   )
 }

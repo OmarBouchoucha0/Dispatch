@@ -21,6 +21,16 @@ export async function commitChanges(): Promise<boolean> {
     return false
   }
 
+  for (const [id, content] of changedEntries) {
+    try {
+      JSON.parse(content)
+    } catch {
+      const name = configs.find((c) => c.id === id)?.name ?? id
+      toast.error(`Invalid JSON in "${name}"`)
+      return false
+    }
+  }
+
   const changed = changedEntries.map(([id, content]) => {
     const config = configs.find((c) => c.id === id)
     if (!config) return null
@@ -47,7 +57,7 @@ export async function commitChanges(): Promise<boolean> {
     })
 
     if (!res.ok) {
-      toast.error("Commit failed")
+      toast.error("Push failed")
       return false
     }
 

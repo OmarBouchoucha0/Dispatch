@@ -11,12 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
@@ -254,7 +250,7 @@ export function NavBar() {
       </div>
 
       <Dialog open={commitDialogOpen} onOpenChange={setCommitDialogOpen}>
-        <Button size="sm" onClick={() => setCommitDialogOpen(true)}>
+        <Button size="sm" onClick={() => { useUiStore.getState().setAccountOpen(false); useUiStore.getState().setSettingsOpen(false); setCommitDialogOpen(true) }}>
           <GitCompare />
           Commit
         </Button>

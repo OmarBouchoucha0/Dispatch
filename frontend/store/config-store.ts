@@ -193,14 +193,29 @@ export const useConfigStore = create<ConfigStore>()(
         useCommitStore.getState().markDeleted(id)
         useEditorStore.getState().closeFile(id)
 
-        set((state) => ({
-          configs: state.configs.filter((c) => c.id !== id),
-          openedConfigs: state.openedConfigs.filter(
+        set((state) => {
+          const newOpenedConfigs = state.openedConfigs.filter(
             (c) => c.id !== id
-          ),
-          activeConfig:
-            state.activeConfig === id ? null : state.activeConfig,
-        }))
+          )
+
+          let newActiveConfig = state.activeConfig
+          if (state.activeConfig === id) {
+            const index = state.openedConfigs.findIndex(
+              (c) => c.id === id
+            )
+            const next =
+              newOpenedConfigs[index] ??
+              newOpenedConfigs[index - 1] ??
+              null
+            newActiveConfig = next?.id ?? null
+          }
+
+          return {
+            configs: state.configs.filter((c) => c.id !== id),
+            openedConfigs: newOpenedConfigs,
+            activeConfig: newActiveConfig,
+          }
+        })
       },
       deleteConfigsByDevice: (deviceID) => {
         const toDelete = useConfigStore
@@ -211,23 +226,28 @@ export const useConfigStore = create<ConfigStore>()(
           useEditorStore.getState().closeFile(c.id)
         })
 
-        set((state) => ({
-          configs: state.configs.filter(
-            (c) => c.deviceID !== deviceID
-          ),
-          openedConfigs: state.openedConfigs.filter(
-            (c) => c.deviceID !== deviceID
-          ),
-          activeConfig:
+        set((state) => {
+          const deletedIds = new Set(toDelete.map((c) => c.id))
+          const newOpenedConfigs = state.openedConfigs.filter(
+            (c) => !deletedIds.has(c.id)
+          )
+
+          let newActiveConfig = state.activeConfig
+          if (
             state.activeConfig &&
-            state.configs.some(
-              (c) =>
-                c.id === state.activeConfig &&
-                c.deviceID === deviceID
-            )
-              ? null
-              : state.activeConfig,
-        }))
+            deletedIds.has(state.activeConfig)
+          ) {
+            newActiveConfig = newOpenedConfigs[0]?.id ?? null
+          }
+
+          return {
+            configs: state.configs.filter(
+              (c) => c.deviceID !== deviceID
+            ),
+            openedConfigs: newOpenedConfigs,
+            activeConfig: newActiveConfig,
+          }
+        })
       },
       createConfig: (deviceID, deviceName, name) => {
         const state = useConfigStore.getState()

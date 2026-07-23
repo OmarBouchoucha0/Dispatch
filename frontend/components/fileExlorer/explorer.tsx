@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, File } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
+import { useUiStore } from "@/store/ui-store"
 import { buildTree, FileNode } from "@/lib/build-tree"
 import { useState, useRef, useEffect } from "react"
 import { Plus } from "lucide-react"
@@ -39,7 +40,23 @@ export function Explorer() {
   const createDevice = useDeviceStore(
     (state) => state.createDevice
   )
+  const pendingCreateFileDeviceID = useConfigStore(
+    (state) => state.pendingCreateFileDeviceID
+  )
+  const setPendingCreateFileDeviceID = useConfigStore(
+    (state) => state.setPendingCreateFileDeviceID
+  )
+  const setCreatingFolderID = useUiStore(
+    (state) => state.setCreatingFolderID
+  )
   const tree = buildTree(configs, devices)
+
+  useEffect(() => {
+    if (pendingCreateFileDeviceID) {
+      setCreatingFolderID(pendingCreateFileDeviceID)
+      setPendingCreateFileDeviceID(null)
+    }
+  }, [pendingCreateFileDeviceID, setCreatingFolderID, setPendingCreateFileDeviceID])
 
   return (
     <div className="text-xs select-none py-1">
@@ -92,9 +109,13 @@ function FileTreeNode({
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(node.name)
   const inputRef = useRef<HTMLInputElement>(null)
-  const [isCreating, setIsCreating] = useState(false)
   const [newFileName, setNewFileName] = useState("")
   const newFileInputRef = useRef<HTMLInputElement>(null)
+  const deviceID = node.id.replace("folder-", "")
+  const creatingFolderID = useUiStore((state) => state.creatingFolderID)
+  const setCreatingFolderID = useUiStore((state) => state.setCreatingFolderID)
+  const isCreating = node.type === "folder" && creatingFolderID === deviceID
+  const isExpanded = expanded || isCreating
   const isSelected = node.type === "file" && selectedPath === node.id
   const renameConfig = useConfigStore((state) => state.renameConfig)
   const renameConfigsByDevice = useConfigStore(
@@ -107,12 +128,6 @@ function FileTreeNode({
   const createConfig = useConfigStore((state) => state.createConfig)
   const renameDevice = useDeviceStore((state) => state.renameDevice)
   const deleteDevice = useDeviceStore((state) => state.deleteDevice)
-  const pendingCreateFileDeviceID = useConfigStore(
-    (state) => state.pendingCreateFileDeviceID
-  )
-  const setPendingCreateFileDeviceID = useConfigStore(
-    (state) => state.setPendingCreateFileDeviceID
-  )
   const setLastActiveDeviceID = useConfigStore(
     (state) => state.setLastActiveDeviceID
   )
@@ -133,22 +148,6 @@ function FileTreeNode({
       newFileInputRef.current?.focus()
     })
   }, [isCreating])
-
-  useEffect(() => {
-    if (
-      node.type !== "folder" ||
-      pendingCreateFileDeviceID === null
-    )
-      return
-
-    const deviceID = node.id.replace("folder-", "")
-    if (pendingCreateFileDeviceID === deviceID) {
-      setIsCreating(true)
-      setExpanded(true)
-      setNewFileName("")
-      setPendingCreateFileDeviceID(null)
-    }
-  }, [pendingCreateFileDeviceID])
 
   function startEditing() {
     setEditValue(node.name)
@@ -180,12 +179,12 @@ function FileTreeNode({
   function handleCreateFile() {
     const trimmed = newFileName.trim()
     if (!trimmed) {
-      setIsCreating(false)
+      setCreatingFolderID(null)
       return
     }
 
     const deviceID = node.id.replace("folder-", "")
-    setIsCreating(false)
+    setCreatingFolderID(null)
     createConfig(deviceID, node.name, trimmed)
   }
 
@@ -193,7 +192,7 @@ function FileTreeNode({
     if (e.key === "Enter") {
       handleCreateFile()
     } else if (e.key === "Escape") {
-      setIsCreating(false)
+      setCreatingFolderID(null)
     }
   }
 
@@ -209,7 +208,7 @@ function FileTreeNode({
               }}
               className="group flex items-center gap-1 h-6 pl-2 cursor-pointer rounded-none"
             >
-              {expanded ? (
+              {isExpanded ? (
                 <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
               ) : (
                 <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
@@ -244,7 +243,7 @@ function FileTreeNode({
                   className="h-5 w-5 px-3 opacity-0 hover:!text-primary-foreground transition-opacity duration-10 hover:!bg-transparent group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setIsCreating(true)
+                    setCreatingFolderID(deviceID)
                     setExpanded(true)
                     setNewFileName("")
                   }}
@@ -253,7 +252,7 @@ function FileTreeNode({
                 </Button>
               </div>
             </div>
-            {expanded && node.children?.map((child) => (
+            {isExpanded && node.children?.map((child) => (
               <FileTreeNode
                 key={child.id}
                 node={child}

@@ -33,10 +33,11 @@ import { logout } from "@/lib/api"
 import { toast } from "sonner"
 
 export function CommandPalette() {
-  const [open, setOpen] = React.useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
+  const open = useUiStore((state) => state.commandPaletteOpen)
+  const setOpen = useUiStore((state) => state.setCommandPaletteOpen)
   const sync = useConfigStore((state) => state.sync)
   const setAccountOpen = useUiStore((state) => state.setAccountOpen)
   const setSettingsOpen = useUiStore((state) => state.setSettingsOpen)
@@ -52,15 +53,15 @@ export function CommandPalette() {
 
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.altKey && e.key === "k") {
         e.preventDefault()
-        setOpen((prev) => !prev)
+        setOpen(!open)
       }
     }
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [open, setOpen])
 
   function close() {
     setOpen(false)
@@ -75,6 +76,9 @@ export function CommandPalette() {
         size="sm"
       >
         Command Palette
+        <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+          Ctrl+Alt+K
+        </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command>
@@ -98,11 +102,11 @@ export function CommandPalette() {
                 <Monitor className="size-4" />
                 Devices
               </CommandItem>
-              <CommandItem onSelect={() => { setSettingsOpen(false); setAccountOpen(true); close() }}>
+              <CommandItem onSelect={() => { setSettingsOpen(false); setCommitDialogOpen(false); setAccountOpen(true); close() }}>
                 <User className="size-4" />
                 Account
               </CommandItem>
-              <CommandItem onSelect={() => { setAccountOpen(false); setSettingsOpen(true); close() }}>
+              <CommandItem onSelect={() => { setAccountOpen(false); setCommitDialogOpen(false); setSettingsOpen(true); close() }}>
                 <Settings className="size-4" />
                 Settings
               </CommandItem>
@@ -131,7 +135,7 @@ export function CommandPalette() {
                 <Monitor className="size-4" />
                 New Device
               </CommandItem>
-              <CommandItem onSelect={() => { setCommitDialogOpen(true); close() }}>
+              <CommandItem onSelect={() => { setAccountOpen(false); setSettingsOpen(false); setCommitDialogOpen(true); close() }}>
                 <GitCommitVertical className="size-4" />
                 Commit
               </CommandItem>

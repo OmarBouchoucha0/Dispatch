@@ -55,16 +55,13 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
   const editorFont = usePreferencesStore((state) => state.editorFont)
   const editorFontSize = usePreferencesStore((state) => state.editorFontSize)
   const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const setEditorInstance = useUiStore((state) => state.setEditorInstance)
-
-  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     return () => setEditorInstance(null)
   }, [setEditorInstance])
 
-  const editorTheme = !mounted || resolvedTheme === "dark"
+  const editorTheme = resolvedTheme === undefined || resolvedTheme === "dark"
     ? "vscode-dark-2026"
     : "vscode-light-2026"
 
@@ -81,6 +78,16 @@ export function CodeEditor({ language, value, onChange }: CodeEditorProps) {
       monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyMod.Shift | monacoInstance.KeyCode.KeyP,
       () => { }
     )
+
+    editor.addAction({
+      id: "opencode.commandPalette",
+      label: "Open Command Palette",
+      keybindings: [monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyMod.Alt | monacoInstance.KeyCode.KeyK],
+      run: () => {
+        const { commandPaletteOpen, setCommandPaletteOpen } = useUiStore.getState()
+        setCommandPaletteOpen(!commandPaletteOpen)
+      },
+    })
   }
 
   useEffect(() => {

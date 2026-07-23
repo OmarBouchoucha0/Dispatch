@@ -14,7 +14,7 @@ export function ConfigSync() {
     syncConfigs()
     syncDevices()
     syncLogs()
-  }, [])
+  }, [syncConfigs, syncDevices, syncLogs])
 
   return null
 }
