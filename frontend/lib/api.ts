@@ -2,6 +2,11 @@ import { toast } from "sonner"
 import { useConfigStore } from "@/store/config-store"
 import { useEditorStore } from "@/store/editor-store"
 import { useCommitStore } from "@/store/commit-store"
+import { useUiStore } from "@/store/ui-store"
+import { useUserStore } from "@/store/users-store"
+import { useDeviceStore } from "@/store/device-store"
+import { usePreferencesStore } from "@/store/preferences-store"
+
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
@@ -97,6 +102,11 @@ export async function logout(): Promise<void> {
 
     useConfigStore.getState().clear()
     useEditorStore.getState().clear()
+    useCommitStore.getState().clear()
+    useUiStore.getState().clear()
+    useUserStore.getState().clear()
+    useDeviceStore.getState().clear()
+    usePreferencesStore.getState().clear()
   } catch {
     toast.error("Server error")
   }

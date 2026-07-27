@@ -1,7 +1,8 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { CommandPalette } from "@/components/navbar/command"
-import { RefreshCw, GitCompare, GitMerge } from "lucide-react"
+import { RefreshCw, GitCompare, GitMerge, ChevronDownIcon } from "lucide-react"
+import { format } from "date-fns"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,14 @@ import {
   DialogContent,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { Calendar } from "@/components/ui/calendar"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useCommitStore } from "@/store/commit-store"
@@ -54,6 +63,8 @@ export function NavBar() {
   const setCommitDialogOpen = useUiStore((s) => s.setCommitDialogOpen)
   const hasChanges = changedCount > 0 || deletedCount > 0
   const [commitLoading, setCommitLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [date, setDate] = useState(new Date())
 
   function triggerEditor(actionId: string) {
     editorInstance?.trigger("menu", actionId, null)
@@ -244,7 +255,7 @@ export function NavBar() {
           ) : (
             <RefreshCw />
           )}
-          Sync
+          Sync Latest
         </Button>
 
       </div>
@@ -262,15 +273,52 @@ export function NavBar() {
             <Diff />
           </div>
 
-          <DialogFooter className="shrink-0 flex-row justify-end border-t m-0">
-            <Button onClick={handlePush} disabled={!hasChanges || commitLoading}>
-              {commitLoading ? (
-                <Spinner />
-              ) : (
-                <GitMerge />
-              )}
-              Push
-            </Button>
+          <DialogFooter className="shrink-0 flex-row items-center justify-end border-t m-0 gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <Field orientation="horizontal">
+                <FieldLabel htmlFor="date-picker-optional">Date</FieldLabel>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      id="date-picker-optional"
+                      className="justify-between font-normal"
+                    >
+                      {date ? format(date, "PPP") : "Select date"}
+                      <ChevronDownIcon data-icon="inline-end" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      captionLayout="dropdown"
+                      defaultMonth={date}
+                      onSelect={(selected) => {
+                        if (selected) setDate(selected)
+                        setOpen(false)
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </Field>
+
+              <Field orientation="horizontal">
+                <FieldLabel htmlFor="time-picker">Time</FieldLabel>
+                <Input
+                  type="time"
+                  id="time-picker"
+                  step="1"
+                  defaultValue={new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  className="min-w-0"
+                />
+              </Field>
+
+              <Button onClick={handlePush} disabled={!hasChanges || commitLoading}>
+                {commitLoading ? <Spinner /> : <GitMerge />}
+                Push
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

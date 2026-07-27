@@ -13,6 +13,7 @@ type UsersStore = {
   loading: boolean
   error: string | null
   sync: () => Promise<void>
+  clear: () => void
 }
 
 export const useUserStore = create<UsersStore>((set) => ({
@@ -44,4 +45,6 @@ export const useUserStore = create<UsersStore>((set) => ({
       set({ loading: false })
     }
   },
+
+  clear: () => set({ users: [], loading: false, error: null }),
 }))

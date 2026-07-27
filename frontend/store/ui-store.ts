@@ -9,6 +9,8 @@ type UiStore = {
   sidebarCollapsed: boolean
   creatingFolderID: string | null
   editorInstance: monaco.editor.IStandaloneCodeEditor | null
+  calendarView: string
+  calendarDate: string
   setAccountOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean) => void
   setCommitDialogOpen: (open: boolean) => void
@@ -16,6 +18,9 @@ type UiStore = {
   setSidebarCollapsed: (collapsed: boolean) => void
   setCreatingFolderID: (id: string | null) => void
   setEditorInstance: (instance: monaco.editor.IStandaloneCodeEditor | null) => void
+  setCalendarView: (view: string) => void
+  setCalendarDate: (date: string) => void
+  clear: () => void
 }
 
 export const useUiStore = create<UiStore>((set) => ({
@@ -26,6 +31,8 @@ export const useUiStore = create<UiStore>((set) => ({
   sidebarCollapsed: false,
   creatingFolderID: null,
   editorInstance: null,
+  calendarView: "timeGridWeek",
+  calendarDate: new Date().toISOString().slice(0, 10),
   setAccountOpen: (open) => set({ accountOpen: open }),
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   setCommitDialogOpen: (open) => set({ commitDialogOpen: open }),
@@ -33,4 +40,17 @@ export const useUiStore = create<UiStore>((set) => ({
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
   setCreatingFolderID: (id) => set({ creatingFolderID: id }),
   setEditorInstance: (instance) => set({ editorInstance: instance }),
+  setCalendarView: (view) => set({ calendarView: view }),
+  setCalendarDate: (date) => set({ calendarDate: date }),
+  clear: () => set({
+    accountOpen: false,
+    settingsOpen: false,
+    commitDialogOpen: false,
+    commandPaletteOpen: false,
+    sidebarCollapsed: false,
+    creatingFolderID: null,
+    editorInstance: null,
+    calendarView: "timeGridWeek",
+    calendarDate: new Date().toISOString().slice(0, 10),
+  }),
 }))

@@ -18,6 +18,7 @@ type DeviceStore = {
   deleteDevice: (id: string) => void
   pendingDeviceName: string | null
   setPendingDeviceName: (name: string | null) => void
+  clear: () => void
 }
 
 export const useDeviceStore = create<DeviceStore>()(
@@ -80,6 +81,8 @@ export const useDeviceStore = create<DeviceStore>()(
 
       setPendingDeviceName: (name) =>
         set({ pendingDeviceName: name }),
+
+      clear: () => set({ devices: [], loading: false, error: null, pendingDeviceName: null }),
     }),
     {
       name: "device-store",

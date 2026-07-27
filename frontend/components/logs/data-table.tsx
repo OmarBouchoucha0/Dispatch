@@ -100,7 +100,7 @@ export function DataTable<TData, TValue>({
 
       <div
         ref={tableContainerRef}
-        className="flex-1 min-h-0 overflow-hidden rounded-none "
+        className="flex-1 min-h-0 overflow-hidden rounded-none"
       >
         <Table>
           <TableHeader ref={headerRef}>

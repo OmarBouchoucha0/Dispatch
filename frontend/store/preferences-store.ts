@@ -8,6 +8,7 @@ type PreferencesStore = {
   setEditorFont: (font: string) => void
   setEditorFontSize: (size: number) => void
   setBaseEditorFontSize: (size: number) => void
+  clear: () => void
 }
 
 export const usePreferencesStore = create<PreferencesStore>()(
@@ -19,6 +20,8 @@ export const usePreferencesStore = create<PreferencesStore>()(
       setEditorFont: (font) => set({ editorFont: font }),
       setEditorFontSize: (size) => set({ editorFontSize: size }),
       setBaseEditorFontSize: (size) => set({ baseEditorFontSize: size }),
+
+      clear: () => set({ editorFont: "JetBrains Mono", editorFontSize: 18, baseEditorFontSize: 18 }),
     }),
     {
       name: "preferences-store",

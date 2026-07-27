@@ -17,12 +17,14 @@ import { ExplorerHeader } from "@/components/fileExlorer/explorer-header"
 import { LogsTable } from "@/components/logs/logs-table"
 import { UserTable } from "@/components/users/user-table"
 import { DeviceTable } from "@/components/devices/device-table"
+import { ScheduleCalendar } from "@/components/schedule/schedule-calendar"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
 import { Suspense, useEffect, useRef } from "react"
+import { EditorLayoutSkeleton } from "@/components/ui/skeleton"
 import type { PanelImperativeHandle } from "react-resizable-panels"
 
 function HomeContent() {
@@ -63,16 +65,23 @@ function HomeContent() {
   }, [sidebarCollapsed])
 
   if (loading) {
-    return <div>Loading...</div>
+    return <EditorLayoutSkeleton />
   }
 
   if (!user) {
     return null
   }
 
+  if (view === "schedule") {
+    return (
+      <div className="flex flex-1 h-full min-h-0 flex-col p-3 overflow-hidden">
+        <ScheduleCalendar />
+      </div>
+    )
+  }
   if (view === "logs") {
     return (
-      <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
+      <div className="flex flex-1 h-full min-h-0 flex-col p-3 overflow-hidden">
         <LogsTable />
       </div>
     )
@@ -80,7 +89,7 @@ function HomeContent() {
 
   if (view === "users") {
     return (
-      <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
+      <div className="flex flex-1 h-full min-h-0 flex-col p-3 overflow-hidden">
         <UserTable />
       </div>
     )
@@ -88,7 +97,7 @@ function HomeContent() {
 
   if (view === "devices") {
     return (
-      <div className="flex flex-1 h-full min-h-0 flex-col p-4 overflow-hidden">
+      <div className="flex flex-1 h-full min-h-0 flex-col p-3 overflow-hidden">
         <DeviceTable />
       </div>
     )
@@ -115,43 +124,43 @@ function HomeContent() {
               <Explorer />
             </div>
           </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuItem
-                onSelect={() => {
-                  const deviceID = lastActiveDeviceID ?? devices[0]?.id
-                  if (deviceID) setPendingCreateFileDeviceID(deviceID)
-                }}
-              >
-                New File
-              </ContextMenuItem>
-              <ContextMenuItem
-                onSelect={() => { if (activeConfig) closeConfig(activeConfig) }}
-              >
-                Close File
-              </ContextMenuItem>
-              <ContextMenuSeparator />
-              <ContextMenuItem
-                onSelect={() => setPendingDeviceName("")}
-              >
-                New Device
-              </ContextMenuItem>
-              <ContextMenuSeparator />
-              <ContextMenuItem
-                onSelect={() => {
-                  if (sidebarRef.current?.isCollapsed()) {
-                    sidebarRef.current.expand()
-                  } else {
-                    sidebarRef.current?.collapse()
-                  }
-                }}
-              >
-                Toggle Sidebar
-              </ContextMenuItem>
-            </ContextMenuContent>
+          <ContextMenuContent>
+            <ContextMenuItem
+              onSelect={() => {
+                const deviceID = lastActiveDeviceID ?? devices[0]?.id
+                if (deviceID) setPendingCreateFileDeviceID(deviceID)
+              }}
+            >
+              New File
+            </ContextMenuItem>
+            <ContextMenuItem
+              onSelect={() => { if (activeConfig) closeConfig(activeConfig) }}
+            >
+              Close File
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onSelect={() => setPendingDeviceName("")}
+            >
+              New Device
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onSelect={() => {
+                if (sidebarRef.current?.isCollapsed()) {
+                  sidebarRef.current.expand()
+                } else {
+                  sidebarRef.current?.collapse()
+                }
+              }}
+            >
+              Toggle Sidebar
+            </ContextMenuItem>
+          </ContextMenuContent>
         </ContextMenu>
       </ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel minSize={500} >
+      <ResizablePanel minSize={400} >
         <Editor />
       </ResizablePanel>
     </ResizablePanelGroup >
@@ -160,7 +169,7 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<EditorLayoutSkeleton />}>
       <HomeContent />
     </Suspense>
   )

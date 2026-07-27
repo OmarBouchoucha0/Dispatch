@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useUserStore } from "@/store/users-store"
 import { DataTable } from "./data-table"
+import { TableSkeleton } from "@/components/ui/skeleton"
 import { columns } from "./columns"
 
 export function UserTable() {
@@ -15,7 +16,7 @@ export function UserTable() {
   }, [sync])
 
   if (loading && users.length === 0) {
-    return <div>Loading...</div>
+    return <TableSkeleton />
   }
 
   return <DataTable columns={columns} data={users} />

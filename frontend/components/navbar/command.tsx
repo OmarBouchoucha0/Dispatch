@@ -90,6 +90,10 @@ export function CommandPalette() {
                 <Files className="size-4" />
                 Files
               </CommandItem>
+              <CommandItem onSelect={() => { router.push("/files?view=schedule"); close() }}>
+                <Files className="size-4" />
+                Schedule
+              </CommandItem>
               <CommandItem onSelect={() => { router.push("/files?view=logs"); close() }}>
                 <ScrollText className="size-4" />
                 Logs

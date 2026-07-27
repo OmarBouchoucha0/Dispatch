@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { Files, Settings, Monitor, User, Users, LogOut, ScrollText } from "lucide-react"
+import { Files, Settings, Monitor, User, Users, LogOut, ScrollText, Clock } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import {
@@ -157,6 +157,18 @@ export function SideBar() {
         <TooltipContent side="right">
           <p>Files</p>
         </TooltipContent>
+      </Tooltip>
+
+      <Tooltip >
+        <TooltipTrigger asChild>
+          <SidebarIcon icon={Clock}
+            onClick={() => router.push("/files?view=schedule")}
+            active={pathname === "/files" && view === "schedule"}
+          />
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Schedule</p>
+        </TooltipContent >
       </Tooltip>
 
       <Tooltip >

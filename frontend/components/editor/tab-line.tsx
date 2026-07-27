@@ -33,7 +33,7 @@ export function TabsLine() {
                           border-r-border
                           text-xs
                           px-2
-                          pl-5
+                          pl-6
                           data-[state=active]:!bg-background
                           data-[state=active]:!text-foreground
                           data-[state=active]:!border-t-primary
