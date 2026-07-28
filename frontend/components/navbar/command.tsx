@@ -25,7 +25,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
@@ -34,8 +34,8 @@ import { toast } from "sonner"
 
 export function CommandPalette() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const view = searchParams.get("view") ?? "files"
+  const view = useUiStore((state) => state.view)
+  const setView = useUiStore((state) => state.setView)
   const open = useUiStore((state) => state.commandPaletteOpen)
   const setOpen = useUiStore((state) => state.setCommandPaletteOpen)
   const sync = useConfigStore((state) => state.sync)
@@ -86,23 +86,23 @@ export function CommandPalette() {
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Navigation">
-              <CommandItem onSelect={() => { router.push("/files"); close() }}>
+              <CommandItem onSelect={() => { setView("files"); close() }}>
                 <Files className="size-4" />
                 Files
               </CommandItem>
-              <CommandItem onSelect={() => { router.push("/files?view=schedule"); close() }}>
+              <CommandItem onSelect={() => { setView("schedule"); close() }}>
                 <Files className="size-4" />
                 Schedule
               </CommandItem>
-              <CommandItem onSelect={() => { router.push("/files?view=logs"); close() }}>
+              <CommandItem onSelect={() => { setView("logs"); close() }}>
                 <ScrollText className="size-4" />
                 Logs
               </CommandItem>
-              <CommandItem onSelect={() => { router.push("/files?view=users"); close() }}>
+              <CommandItem onSelect={() => { setView("users"); close() }}>
                 <Users className="size-4" />
                 Users
               </CommandItem>
-              <CommandItem onSelect={() => { router.push("/files?view=devices"); close() }}>
+              <CommandItem onSelect={() => { setView("devices"); close() }}>
                 <Monitor className="size-4" />
                 Devices
               </CommandItem>
@@ -124,7 +124,7 @@ export function CommandPalette() {
               <CommandItem onSelect={() => {
                 const deviceID = lastActiveDeviceID ?? devices[0]?.id
                 if (!deviceID) { close(); return }
-                if (view !== "files") router.push("/files")
+                if (view !== "files") setView("files")
                 setPendingCreateFileDeviceID(deviceID)
                 close()
               }}>
@@ -132,7 +132,7 @@ export function CommandPalette() {
                 New Config
               </CommandItem>
               <CommandItem onSelect={() => {
-                if (view !== "files") router.push("/files")
+                if (view !== "files") setView("files")
                 setPendingDeviceName("")
                 close()
               }}>

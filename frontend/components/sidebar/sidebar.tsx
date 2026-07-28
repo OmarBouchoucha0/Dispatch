@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { Files, Settings, Monitor, User, Users, LogOut, ScrollText, Clock } from "lucide-react"
 import { SidebarIcon } from "@/components/sidebar/sidebar-icon"
-import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import {
   Tooltip,
   TooltipContent,
@@ -35,9 +35,8 @@ import { useAuth } from "@/components/auth/auth-provider"
 
 export function SideBar() {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const view = searchParams.get("view") ?? "files"
+  const view = useUiStore((state) => state.view)
+  const setView = useUiStore((state) => state.setView)
   const { user, refresh } = useAuth()
   const [firstName, setFirstName] = useState(user?.firstName ?? "")
   const [lastName, setLastName] = useState(user?.lastName ?? "")
@@ -150,8 +149,8 @@ export function SideBar() {
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={Files}
-            onClick={() => router.push("/files")}
-            active={pathname === "/files" && view === "files"}
+            onPointerDown={(e) => { e.preventDefault(); setView("files") }}
+            active={view === "files"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -162,8 +161,8 @@ export function SideBar() {
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={Clock}
-            onClick={() => router.push("/files?view=schedule")}
-            active={pathname === "/files" && view === "schedule"}
+            onPointerDown={(e) => { e.preventDefault(); setView("schedule") }}
+            active={view === "schedule"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -174,8 +173,8 @@ export function SideBar() {
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={ScrollText}
-            onClick={() => router.push("/files?view=logs")}
-            active={pathname === "/files" && view === "logs"}
+            onPointerDown={(e) => { e.preventDefault(); setView("logs") }}
+            active={view === "logs"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -186,8 +185,8 @@ export function SideBar() {
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={Users}
-            onClick={() => router.push("/files?view=users")}
-            active={pathname === "/files" && view === "users"}
+            onPointerDown={(e) => { e.preventDefault(); setView("users") }}
+            active={view === "users"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -198,8 +197,8 @@ export function SideBar() {
       <Tooltip >
         <TooltipTrigger asChild>
           <SidebarIcon icon={Monitor}
-            onClick={() => router.push("/files?view=devices")}
-            active={pathname === "/files" && view === "devices"}
+            onPointerDown={(e) => { e.preventDefault(); setView("devices") }}
+            active={view === "devices"}
           />
         </TooltipTrigger>
         <TooltipContent side="right">

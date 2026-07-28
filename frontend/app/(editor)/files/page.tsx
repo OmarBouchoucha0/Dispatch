@@ -18,21 +18,34 @@ import { LogsTable } from "@/components/logs/logs-table"
 import { UserTable } from "@/components/users/user-table"
 import { DeviceTable } from "@/components/devices/device-table"
 import { ScheduleCalendar } from "@/components/schedule/schedule-calendar"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
 import { Suspense, useEffect, useRef } from "react"
-import { EditorLayoutSkeleton } from "@/components/ui/skeleton"
+import { LoadingFallback } from "@/components/ui/skeleton"
 import type { PanelImperativeHandle } from "react-resizable-panels"
 
 function HomeContent() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const view = searchParams.get("view") ?? "files"
+  const view = useUiStore((state) => state.view)
+  const setView = useUiStore((state) => state.setView)
   const sidebarRef = useRef<PanelImperativeHandle | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const urlView = params.get("view") ?? "files"
+    setView(urlView)
+  }, [setView])
+
+  useEffect(() => {
+    router.replace(
+      view === "files" ? "/files" : `/files?view=${view}`,
+      { scroll: false }
+    )
+  }, [view, router])
 
   const activeConfig = useConfigStore((state) => state.activeConfig)
   const closeConfig = useConfigStore((state) => state.closeConfig)
@@ -65,7 +78,7 @@ function HomeContent() {
   }, [sidebarCollapsed])
 
   if (loading) {
-    return <EditorLayoutSkeleton />
+    return <LoadingFallback />
   }
 
   if (!user) {
@@ -74,7 +87,7 @@ function HomeContent() {
 
   if (view === "schedule") {
     return (
-      <div className="flex flex-1 h-full min-h-0 flex-col p-3 overflow-hidden">
+      <div className="flex flex-1 h-full min-h-0 flex-col p-0 overflow-hidden">
         <ScheduleCalendar />
       </div>
     )
@@ -169,7 +182,7 @@ function HomeContent() {
 
 export default function Home() {
   return (
-      <Suspense fallback={<EditorLayoutSkeleton />}>
+    <Suspense fallback={<LoadingFallback />}>
       <HomeContent />
     </Suspense>
   )

@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useDeviceStore } from "@/store/device-store"
 import { DataTable } from "./data-table"
-import { TableSkeleton } from "@/components/ui/skeleton"
+import { LoadingFallback } from "@/components/ui/skeleton"
 import { columns } from "./columns"
 
 export function DeviceTable() {
@@ -16,7 +16,7 @@ export function DeviceTable() {
   }, [sync])
 
   if (loading && devices.length === 0) {
-    return <TableSkeleton />
+    return <LoadingFallback />
   }
 
   return <DataTable columns={columns} data={devices} />

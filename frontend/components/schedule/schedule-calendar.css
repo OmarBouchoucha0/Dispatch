@@ -56,6 +56,8 @@
 
 .fc .fc-scrollgrid {
   border-color: var(--border);
+  border-left: none;
+  border-right: none;
 }
 
 .fc .fc-scrollgrid-section>td {
@@ -95,7 +97,7 @@
 }
 
 .fc .fc-daygrid-event-harness {
-  margin: 0px 0.25rem !important;
+  margin: 0px 0.5rem !important;
 }
 
 .fc .fc-daygrid-event {
@@ -148,7 +150,7 @@
 
 .fc .fc-dayGridMonth-button,
 .fc .fc-timeGridWeek-button {
-  margin-left: 0.1rem;
+  margin-left: 0.5rem;
 }
 
 .fc .fc-dayGridMonth-button:not(.fc-button-active),
@@ -156,16 +158,11 @@
   color: var(--muted-foreground);
 }
 
-.fc .fc-dayGridWeek {
-  margin-left: 0.25rem;
-}
-
 .fc .fc-today-button {
   background-color: var(--primary);
   color: var(--primary-foreground);
   border-color: var(--primary);
-  margin-right: 0.5rem !important;
-
+  margin-right: 1rem !important;
 }
 
 .fc .fc-today-button:hover:not(:disabled) {
@@ -188,7 +185,7 @@
 }
 
 .fc .fc-header-toolbar {
-  margin-bottom: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .fc .fc-toolbar-chunk {
@@ -197,9 +194,6 @@
   gap: 0.375rem;
 }
 
-.fc .fc-toolbar-chunk>* {
-  margin: 0;
-}
 
 .fc .schedule-event--pending {
   background-color: #FFDE21;
@@ -208,7 +202,7 @@
 }
 
 .dark .fc .schedule-event--pending {
-  background-color: color-mix(in srgb, #FFDE21 30%, var(--background));
+  background-color: color-mix(in srgb, #FFDE21 60%, var(--background)) !important;
   border-color: #FFDE21;
   color: #FFDE21;
 }
@@ -220,7 +214,7 @@
 }
 
 .dark .fc .schedule-event--deployed {
-  background-color: color-mix(in srgb, #22c55e 30%, var(--background));
+  background-color: color-mix(in srgb, #22c55e 60%, var(--background)) !important;
   border-color: #22c55e;
   color: #22c55e;
 }
@@ -232,7 +226,41 @@
 }
 
 .dark .fc .schedule-event--cancelled {
-  background-color: color-mix(in srgb, #9d9d9d 30%, var(--background));
+  background-color: color-mix(in srgb, #9d9d9d 60%, var(--background)) !important;
   border-color: #9d9d9d;
   color: #9d9d9d;
+}
+
+.fc-timegrid-event,
+.fc-daygrid-event {
+  cursor: pointer;
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event-harness {
+  padding: 0 1px;
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event.fc-event {
+  margin: 0 2px;
+  width: calc(100% - 4px);
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event {
+  height: 6px !important;
+  padding: 0 !important;
+  border: 1px solid var(--muted-foreground) !important;
+  border-radius: 2px !important
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event .fc-event-main {
+  padding: 0 !important;
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event .fc-event-time,
+.fc-timeGridWeek-view .fc-timegrid-event .fc-event-title {
+  display: none !important;
+}
+
+.fc-timeGridWeek-view .fc-timegrid-event .fc-event-main-frame {
+  display: none !important;
 }

@@ -11,6 +11,8 @@ type UiStore = {
   editorInstance: monaco.editor.IStandaloneCodeEditor | null
   calendarView: string
   calendarDate: string
+  view: string
+  selectedEventId: string | null
   setAccountOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean) => void
   setCommitDialogOpen: (open: boolean) => void
@@ -20,6 +22,8 @@ type UiStore = {
   setEditorInstance: (instance: monaco.editor.IStandaloneCodeEditor | null) => void
   setCalendarView: (view: string) => void
   setCalendarDate: (date: string) => void
+  setView: (view: string) => void
+  setSelectedEventId: (id: string | null) => void
   clear: () => void
 }
 
@@ -33,6 +37,10 @@ export const useUiStore = create<UiStore>((set) => ({
   editorInstance: null,
   calendarView: "timeGridWeek",
   calendarDate: new Date().toISOString().slice(0, 10),
+  view: "files",
+  selectedEventId: null,
+  setView: (view) => set({ view }),
+  setSelectedEventId: (id) => set({ selectedEventId: id }),
   setAccountOpen: (open) => set({ accountOpen: open }),
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   setCommitDialogOpen: (open) => set({ commitDialogOpen: open }),
@@ -52,5 +60,7 @@ export const useUiStore = create<UiStore>((set) => ({
     editorInstance: null,
     calendarView: "timeGridWeek",
     calendarDate: new Date().toISOString().slice(0, 10),
+    view: "files",
+    selectedEventId: null,
   }),
 }))

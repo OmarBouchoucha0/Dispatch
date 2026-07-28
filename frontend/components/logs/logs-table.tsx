@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useLogsStore } from "@/store/logs-store"
 import { DataTable } from "./data-table"
-import { TableSkeleton } from "@/components/ui/skeleton"
+import { LoadingFallback } from "@/components/ui/skeleton"
 import { columns } from "./columns"
 
 export function LogsTable() {
@@ -16,7 +16,7 @@ export function LogsTable() {
   }, [sync])
 
   if (loading && logs.length === 0) {
-    return <TableSkeleton />
+    return <LoadingFallback />
   }
 
   return <DataTable columns={columns} data={logs} />

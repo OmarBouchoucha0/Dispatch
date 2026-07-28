@@ -87,7 +87,7 @@ export function Diff() {
 
   return (
     <div className="flex h-full gap-0">
-      <div className="w-44 shrink-0 overflow-y-auto border-r border-border text-xs select-none py-1">
+      <div className="w-44 shrink-0 overflow-y-auto border-r border-border text-xs select-none py-1 bg-sidebar">
         <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Explorer
         </div>
