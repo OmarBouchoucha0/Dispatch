@@ -1,8 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { CommandPalette } from "@/components/navbar/command"
-import { RefreshCw, GitCompare, GitMerge, ChevronDownIcon } from "lucide-react"
-import { format } from "date-fns"
+import { GitCompare, GitMerge, ChevronDown, Clock, CalendarIcon } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,33 +14,25 @@ import {
   DialogContent,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Calendar } from "@/components/ui/calendar"
-import { Field, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useCommitStore } from "@/store/commit-store"
 import { useUiStore } from "@/store/ui-store"
 import { usePreferencesStore } from "@/store/preferences-store"
 import { Spinner } from "@/components/ui/spinner"
-import { toast } from "sonner"
 import { useState } from "react"
-import { commitChanges } from "@/lib/api"
+import { scheduleEvent } from "@/lib/api"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Diff } from "@/components/diff/diff"
+import { SchedulePopover } from "@/components/navbar/schedule-popover"
+import { useEventsStore } from "@/store/events-store"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
 export function NavBar() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const view = searchParams.get("view") ?? "files"
-  const sync = useConfigStore((state) => state.sync)
-  const syncDevices = useDeviceStore((state) => state.sync)
-  const syncLoading = useConfigStore((state) => state.loading)
   const activeConfig = useConfigStore((state) => state.activeConfig)
   const closeConfig = useConfigStore((state) => state.closeConfig)
   const setPendingCreateFileDeviceID = useConfigStore(
@@ -62,9 +53,9 @@ export function NavBar() {
   const commitDialogOpen = useUiStore((s) => s.commitDialogOpen)
   const setCommitDialogOpen = useUiStore((s) => s.setCommitDialogOpen)
   const hasChanges = changedCount > 0 || deletedCount > 0
-  const [commitLoading, setCommitLoading] = useState(false)
-  const [open, setOpen] = useState(false)
-  const [date, setDate] = useState(new Date())
+  const [scheduleLoading, setScheduleLoading] = useState(false)
+  const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [eventName, setEventName] = useState("")
 
   function triggerEditor(actionId: string) {
     editorInstance?.trigger("menu", actionId, null)
@@ -110,27 +101,44 @@ export function NavBar() {
     ])
   }
 
-  async function handleSync() {
-    try {
-      await Promise.all([sync(), syncDevices()])
-      toast.success("Synchronized")
-    } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Couldn't fetch config files"
-      )
-    }
+  function buildConfigsAfter() {
+    const { changedFiles, deletedFiles } = useCommitStore.getState()
+    const configs = useConfigStore.getState().configs
+
+    const configsAfter = configs
+      .filter((c) => !(c.id in deletedFiles))
+      .map((c) => {
+        if (c.id in changedFiles) {
+          return {
+            device_id: c.device_id,
+            name: c.name,
+            content: JSON.parse(changedFiles[c.id]),
+          }
+        }
+        return {
+          device_id: c.device_id,
+          name: c.name,
+          content: c.content,
+        }
+      })
+
+    return configsAfter
   }
 
-  async function handlePush() {
-    setCommitLoading(true)
-
+  async function handleSchedule(name: string, scheduledAt?: Date) {
+    setScheduleLoading(true)
     try {
-      const ok = await commitChanges()
-      if (ok) setCommitDialogOpen(false)
+      const configsAfter = buildConfigsAfter()
+      const ok = await scheduleEvent(name, scheduledAt?.toISOString(), configsAfter)
+      if (ok) {
+        await useEventsStore.getState().sync()
+        setCommitDialogOpen(false)
+        setEventName("")
+        useCommitStore.setState({ changedFiles: {}, deletedFiles: {} })
+        toast.success("Event scheduled")
+      }
     } finally {
-      setCommitLoading(false)
+      setScheduleLoading(false)
     }
   }
 
@@ -247,19 +255,6 @@ export function NavBar() {
         <CommandPalette />
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="secondary" onClick={handleSync} disabled={syncLoading}>
-
-          {syncLoading ? (
-            <Spinner data-icon="inline-start" />
-          ) : (
-            <RefreshCw />
-          )}
-          Sync Latest
-        </Button>
-
-      </div>
-
       <Dialog open={commitDialogOpen} onOpenChange={setCommitDialogOpen}>
         <Button size="sm" onClick={() => { useUiStore.getState().setAccountOpen(false); useUiStore.getState().setSettingsOpen(false); setCommitDialogOpen(true) }}>
           <GitCompare />
@@ -267,58 +262,64 @@ export function NavBar() {
         </Button>
         <DialogContent
           className="!max-w-[90vw] w-[90vw] h-[80vh] flex flex-col p-0 gap-0"
+          showCloseButton={false}
         >
 
-          <div className="flex-1 min-h-0 overflow-auto">
+          <div className="flex-1 min-h-0 overflow-auto rounded-xl">
             <Diff />
           </div>
 
-          <DialogFooter className="shrink-0 flex-row items-center justify-end border-t m-0 gap-2">
-            <div className="flex flex-row items-center gap-2">
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor="date-picker-optional">Date</FieldLabel>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      id="date-picker-optional"
-                      className="justify-between font-normal"
-                    >
-                      {date ? format(date, "PPP") : "Select date"}
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      captionLayout="dropdown"
-                      defaultMonth={date}
-                      onSelect={(selected) => {
-                        if (selected) setDate(selected)
-                        setOpen(false)
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </Field>
-
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor="time-picker">Time</FieldLabel>
-                <Input
-                  type="time"
-                  id="time-picker"
-                  step="1"
-                  defaultValue={new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                  className="min-w-0"
-                />
-              </Field>
-
-              <Button onClick={handlePush} disabled={!hasChanges || commitLoading}>
-                {commitLoading ? <Spinner /> : <GitMerge />}
-                Push
-              </Button>
+          <DialogFooter className="shrink-0 flex-row items-center justify-between border-t m-0 gap-2">
+            <div className="flex items-center gap-2 flex-1 max-w-xs">
+              <Input
+                placeholder="Event name"
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                className="h-7 text-xs"
+              />
             </div>
+
+            <div className="flex flex-row items-center gap-2">
+              <div className="flex items-center rounded-md border overflow-hidden">
+                <Button
+                  onClick={() =>
+                    handleSchedule(eventName.trim() || "Anonymous")
+                  }
+                  disabled={!hasChanges || scheduleLoading}
+                  className="rounded-none border-0"
+                >
+                  {scheduleLoading ? <Spinner /> : <GitMerge />}
+                  Push
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      disabled={!hasChanges || scheduleLoading}
+                      className="rounded-none border-0 border-border border-l-2 px-2"
+                      aria-label="Schedule for later"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[220px]">
+                    <DropdownMenuItem
+                      className="w-full whitespace-nowrap cursor-pointer"
+                      onSelect={() => setScheduleOpen(true)}
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      Schedule for later
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            <SchedulePopover
+              open={scheduleOpen}
+              onOpenChange={setScheduleOpen}
+              onConfirm={handleSchedule}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -5,8 +5,8 @@ import { useEditorStore } from "./editor-store"
 export type DeletedFileInfo = {
   id: string
   name: string
-  deviceID: string
-  deviceName: string
+  device_id: string
+  device_name: string
   content: string
 }
 
@@ -67,8 +67,8 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
           [id]: {
             id: config.id,
             name: config.name,
-            deviceID: config.deviceID,
-            deviceName: config.deviceName,
+            device_id: config.device_id,
+            device_name: config.device_name,
             content,
           },
         },

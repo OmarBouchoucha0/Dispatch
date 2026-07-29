@@ -9,14 +9,15 @@ import (
 )
 
 type LogsListResponse struct {
-	UserName   string
-	DeviceName string
-	Action     string
-	CreatedAt  string
+	UserName   string `json:"user_name"`
+	DeviceName string `json:"device_name"`
+	Action     string `json:"action"`
+	CreatedAt  string `json:"created_at"`
 }
 
 func ListLogs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	loc := getLocation(r)
 
 	logs, err := db.GetLogs(ctx)
 	if err != nil {
@@ -50,7 +51,7 @@ func ListLogs(w http.ResponseWriter, r *http.Request) {
 			UserName:   userName,
 			DeviceName: device.Name,
 			Action:     log.Action,
-			CreatedAt:  log.CreatedAt.Format("2006-01-02 15:04:05"),
+			CreatedAt:  log.CreatedAt.In(loc).Format("2006-01-02 15:04:05"),
 		})
 	}
 

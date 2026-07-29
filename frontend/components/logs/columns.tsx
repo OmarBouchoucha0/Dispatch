@@ -12,23 +12,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export type Config = {
-  UserName: string
-  DeviceName: string
-  Action: "Created" | "Updated" | "Deleted"
-  CreatedAt: string
+  user_name: string
+  device_name: string
+  action: "Created" | "Updated" | "Deleted"
+  created_at: string
 }
 
 export const columns: ColumnDef<Config>[] = [
   {
-    accessorKey: "UserName",
+    accessorKey: "user_name",
     header: "User",
   },
   {
-    accessorKey: "DeviceName",
+    accessorKey: "device_name",
     header: "Device"
   },
   {
-    accessorKey: "Action",
+    accessorKey: "action",
     header: ({ column }) => {
       return (
         <Button
@@ -43,7 +43,7 @@ export const columns: ColumnDef<Config>[] = [
     },
   },
   {
-    accessorKey: "CreatedAt",
+    accessorKey: "created_at",
     header: ({ column }) => {
       return (
         <Button
@@ -56,7 +56,7 @@ export const columns: ColumnDef<Config>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => formatDate(row.getValue("CreatedAt")),
+    cell: ({ row }) => formatDate(row.getValue("created_at")),
   },
   {
     id: "actions",

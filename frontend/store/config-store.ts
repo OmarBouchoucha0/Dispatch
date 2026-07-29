@@ -1,13 +1,13 @@
 import { create } from "zustand"
-import { API_URL } from "@/lib/api"
+import { API_URL, apiFetch } from "@/lib/api"
 import { useEditorStore } from "@/store/editor-store"
 import { useCommitStore } from "@/store/commit-store"
 import { persist } from "zustand/middleware"
 
 export type Config = {
   id: string
-  deviceID: string
-  deviceName: string
+  device_id: string
+  device_name: string
   name: string
   content: object | null
 }
@@ -86,12 +86,7 @@ export const useConfigStore = create<ConfigStore>()(
         })
 
         try {
-          const res = await fetch(
-            `${API_URL}/config`,
-            {
-              credentials: "include",
-            }
-          )
+          const res = await apiFetch(`${API_URL}/config`)
 
           if (!res.ok) {
             throw new Error("Failed to fetch configs")
@@ -164,7 +159,7 @@ export const useConfigStore = create<ConfigStore>()(
             : [...state.openedConfigs, config],
 
           activeConfig: config.id,
-          lastActiveDeviceID: config.deviceID,
+          lastActiveDeviceID: config.device_id,
         }))
       },
       renameConfig: (id, name) =>
@@ -179,13 +174,13 @@ export const useConfigStore = create<ConfigStore>()(
       renameConfigsByDevice: (deviceID, newDeviceName) =>
         set((state) => ({
           configs: state.configs.map((c) =>
-            c.deviceID === deviceID
-              ? { ...c, deviceName: newDeviceName }
+            c.device_id === deviceID
+              ? { ...c, device_name: newDeviceName }
               : c
           ),
           openedConfigs: state.openedConfigs.map((c) =>
-            c.deviceID === deviceID
-              ? { ...c, deviceName: newDeviceName }
+            c.device_id === deviceID
+              ? { ...c, device_name: newDeviceName }
               : c
           ),
         })),
@@ -220,7 +215,7 @@ export const useConfigStore = create<ConfigStore>()(
       deleteConfigsByDevice: (deviceID) => {
         const toDelete = useConfigStore
           .getState()
-          .configs.filter((c) => c.deviceID === deviceID)
+          .configs.filter((c) => c.device_id === deviceID)
         toDelete.forEach((c) => {
           useCommitStore.getState().markDeleted(c.id)
           useEditorStore.getState().closeFile(c.id)
@@ -242,7 +237,7 @@ export const useConfigStore = create<ConfigStore>()(
 
           return {
             configs: state.configs.filter(
-              (c) => c.deviceID !== deviceID
+              (c) => c.device_id !== deviceID
             ),
             openedConfigs: newOpenedConfigs,
             activeConfig: newActiveConfig,
@@ -252,7 +247,7 @@ export const useConfigStore = create<ConfigStore>()(
       createConfig: (deviceID, deviceName, name) => {
         const state = useConfigStore.getState()
         const existingNames = state.configs
-          .filter((c) => c.deviceID === deviceID)
+          .filter((c) => c.device_id === deviceID)
           .map((c) => c.name)
 
         let finalName = name
@@ -264,8 +259,8 @@ export const useConfigStore = create<ConfigStore>()(
 
         const newConfig: Config = {
           id: finalName,
-          deviceID,
-          deviceName,
+          device_id: deviceID,
+          device_name: deviceName,
           name: finalName,
           content: null,
         }
@@ -309,7 +304,7 @@ export const useConfigStore = create<ConfigStore>()(
         }),
     }),
     {
-      name: "config-store",
+      name: "config-store-v2",
     }
   )
 )

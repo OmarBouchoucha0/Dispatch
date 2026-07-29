@@ -12,8 +12,8 @@ import (
 
 type ConfigListResponse struct {
 	ID         string          `json:"id"`
-	DeviceID   string          `json:"deviceID"`
-	DeviceName string          `json:"deviceName"`
+	DeviceID   string          `json:"device_id"`
+	DeviceName string          `json:"device_name"`
 	Name       string          `json:"name"`
 	Content    json.RawMessage `json:"content"`
 }

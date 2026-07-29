@@ -14,85 +14,69 @@ if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not defined")
 }
 
-export async function commitChanges(): Promise<boolean> {
-  const { changedFiles, deletedFiles, snapshots } = useCommitStore.getState()
-  const configs = useConfigStore.getState().configs
-
-  const changedEntries = Object.entries(changedFiles)
-  const deletedEntries = Object.entries(deletedFiles)
-
-  if (changedEntries.length === 0 && deletedEntries.length === 0) {
-    toast.error("No changes to commit")
-    return false
-  }
-
-  for (const [id, content] of changedEntries) {
-    try {
-      JSON.parse(content)
-    } catch {
-      const name = configs.find((c) => c.id === id)?.name ?? id
-      toast.error(`Invalid JSON in "${name}"`)
-      return false
-    }
-  }
-
-  const changed = changedEntries.map(([id, content]) => {
-    const config = configs.find((c) => c.id === id)
-    if (!config) return null
-    return {
-      device_id: config.deviceID,
-      name: config.name,
-      content: JSON.parse(content),
-    }
+export function apiFetch(url: string, opts?: RequestInit): Promise<Response> {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  return fetch(url, {
+    ...opts,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Timezone": timezone,
+      ...opts?.headers,
+    },
   })
+}
 
-  if (changed.some((c) => c === null)) {
-    toast.error("Some changed configs not found")
-    return false
-  }
-
-  const deleted = deletedEntries.map(([id]) => id)
-
+export async function scheduleEvent(
+  name: string,
+  scheduledAt: string | undefined,
+  configsAfter: { device_id: string; name: string; content: unknown }[]
+): Promise<boolean> {
   try {
-    const res = await fetch(`${API_URL}/config/commit`, {
+    const body: Record<string, unknown> = { name, configs_after: configsAfter }
+    if (scheduledAt) {
+      body.scheduled_at = scheduledAt
+    }
+    const res = await apiFetch(`${API_URL}/event`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ changed, deleted }),
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {
-      toast.error("Push failed")
+      const text = await res.text()
+      toast.error(text || "Failed to schedule event")
       return false
     }
 
-    const newSnapshots = { ...snapshots }
-    for (const [id, content] of changedEntries) {
-      newSnapshots[id] = content
-    }
-    for (const [id] of deletedEntries) {
-      delete newSnapshots[id]
-    }
-
-    useCommitStore.setState({
-      snapshots: newSnapshots,
-      changedFiles: {},
-      deletedFiles: {},
-    })
-
-    toast.success("Committed successfully")
     return true
   } catch {
-    toast.error("Server error during commit")
+    toast.error("Server error")
+    return false
+  }
+}
+
+export async function cancelEvent(eventId: string): Promise<boolean> {
+  try {
+    const res = await apiFetch(`${API_URL}/event/${eventId}/cancel`, {
+      method: "PUT",
+    })
+
+    if (!res.ok) {
+      toast.error("Failed to cancel event")
+      return false
+    }
+
+    return true
+  } catch {
+    toast.error("Server error")
     return false
   }
 }
 
 export async function logout(): Promise<void> {
   try {
-    const res = await fetch(`${API_URL}/user/logout`, {
+    const res = await apiFetch(`${API_URL}/user/logout`, {
       method: "GET",
-      credentials: "include",
     })
 
     if (!res.ok) {

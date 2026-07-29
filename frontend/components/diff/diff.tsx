@@ -23,8 +23,8 @@ export function Diff() {
 
   const deletedItems = Object.values(deletedFiles).map((d) => ({
     id: d.id,
-    deviceID: d.deviceID,
-    deviceName: d.deviceName,
+    device_id: d.device_id,
+    device_name: d.device_name,
     name: d.name,
     content: null,
   }))

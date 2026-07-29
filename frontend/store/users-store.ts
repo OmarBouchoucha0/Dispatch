@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { API_URL } from "@/lib/api"
+import { API_URL, apiFetch } from "@/lib/api"
 
 export type User = {
   first_name: string
@@ -25,9 +25,8 @@ export const useUserStore = create<UsersStore>((set) => ({
     set({ loading: true, error: null })
 
     try {
-      const res = await fetch(`${API_URL}/user`, {
+      const res = await apiFetch(`${API_URL}/user`, {
         method: "GET",
-        credentials: "include",
       })
 
       if (!res.ok) {

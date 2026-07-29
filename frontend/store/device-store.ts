@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { API_URL } from "@/lib/api"
+import { API_URL, apiFetch } from "@/lib/api"
 import { persist } from "zustand/middleware"
 
 export type Device = {
@@ -32,9 +32,8 @@ export const useDeviceStore = create<DeviceStore>()(
         set({ loading: true, error: null })
 
         try {
-          const res = await fetch(`${API_URL}/device`, {
+          const res = await apiFetch(`${API_URL}/device`, {
             method: "GET",
-            credentials: "include",
           })
 
           if (!res.ok) {

@@ -20,6 +20,7 @@ type ListDevicesResponse struct {
 
 func ListDevices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	loc := getLocation(r)
 	devices, err := db.GetDevices(ctx)
 	if err != nil {
 		slog.Error("coudnt get devices", "error", err)
@@ -34,7 +35,7 @@ func ListDevices(w http.ResponseWriter, r *http.Request) {
 		res = append(res, ListDevicesResponse{
 			ID:        device.ID,
 			Name:      device.Name,
-			CreatedAt: device.CreatedAt,
+			CreatedAt: device.CreatedAt.In(loc),
 		})
 	}
 

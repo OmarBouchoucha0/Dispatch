@@ -21,20 +21,20 @@ export function buildTree(configs: Config[], devices: Device[]): FileNode[] {
   }
 
   for (const config of configs) {
-    if (!folderMap.has(config.deviceID)) {
-      folderMap.set(config.deviceID, {
-        id: `folder-${config.deviceID}`,
-        name: config.deviceName,
+    if (!folderMap.has(config.device_id)) {
+      folderMap.set(config.device_id, {
+        id: `folder-${config.device_id}`,
+        name: config.device_name,
         type: "folder",
         children: [],
       })
     }
 
-    const folder = folderMap.get(config.deviceID)!
+    const folder = folderMap.get(config.device_id)!
     folder.children!.push({
       id: config.id,
       type: "file",
-      name: config.name || `${config.deviceName}.json`,
+      name: config.name || `${config.device_name}.json`,
     })
   }
 

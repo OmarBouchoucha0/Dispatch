@@ -44,6 +44,8 @@ func main() {
 		slog.Error("Migration failed", "error", err)
 		return
 	}
+	go db.StartScheduler(ctx, 30*time.Second)
+
 	h := mount()
 	addr := fmt.Sprintf("%s:%s", getEnv("HOST", "0.0.0.0"), getEnv("PORT", "8080"))
 	if err := run(h, addr); err != nil {
@@ -113,6 +115,7 @@ func mount() http.Handler {
 			"Accept",
 			"Content-Type",
 			"Authorization",
+			"X-Timezone",
 		},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -126,7 +129,7 @@ func mount() http.Handler {
 		r.Get("/logout", handler.Logout)
 
 		r.Group(func(r chi.Router) {
-			r.Use(auth.Middleware)
+			r.Use(auth.Middleware, handler.TimezoneMiddleware)
 			r.Get("/me", handler.Me)
 			r.Put("/me", handler.UpdateMe)
 			r.Put("/password", handler.ChangePassword)
@@ -136,7 +139,7 @@ func mount() http.Handler {
 	})
 
 	r.Route("/config", func(r chi.Router) {
-		r.Use(auth.Middleware)
+		r.Use(auth.Middleware, handler.TimezoneMiddleware)
 
 		r.Get("/", handler.ListConfigs)
 		r.Post("/", handler.AddConfig)
@@ -146,7 +149,7 @@ func mount() http.Handler {
 	})
 
 	r.Route("/device", func(r chi.Router) {
-		r.Use(auth.Middleware)
+		r.Use(auth.Middleware, handler.TimezoneMiddleware)
 
 		r.Get("/", handler.ListDevices)
 		r.Post("/", handler.AddDevice)
@@ -154,8 +157,16 @@ func mount() http.Handler {
 		r.Delete("/", handler.DeleteDevice)
 	})
 
+	r.Route("/event", func(r chi.Router) {
+		r.Use(auth.Middleware, handler.TimezoneMiddleware)
+
+		r.Get("/", handler.ListEvents)
+		r.Post("/", handler.ScheduleEvent)
+		r.Put("/{id}/cancel", handler.CancelEvent)
+	})
+
 	r.Route("/logs", func(r chi.Router) {
-		r.Use(auth.Middleware)
+		r.Use(auth.Middleware, handler.TimezoneMiddleware)
 
 		r.Get("/", handler.ListLogs)
 	})

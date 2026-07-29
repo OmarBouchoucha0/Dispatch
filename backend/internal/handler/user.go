@@ -55,6 +55,7 @@ type ListUsersRequest struct {
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	loc := getLocation(r)
 	users, err := db.GetUsers(ctx)
 	if err != nil {
 		slog.Error("coudnt get users", "error", err)
@@ -66,7 +67,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 	var req []ListUsersRequest
 
 	for _, user := range users {
-		req = append(req, ListUsersRequest{FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, CreatedAt: user.CreatedAt})
+		req = append(req, ListUsersRequest{FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, CreatedAt: user.CreatedAt.In(loc)})
 	}
 
 	err = json.NewEncoder(w).Encode(req)

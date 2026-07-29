@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { API_URL, logout } from "@/lib/api"
+import { API_URL, apiFetch, logout } from "@/lib/api"
 import { toast } from "sonner"
 import { useTheme } from "next-themes"
 import { useUiStore } from "@/store/ui-store"
@@ -79,10 +79,8 @@ export function SideBar() {
 
     setChangingPassword(true)
     try {
-      const res = await fetch(`${API_URL}/user/password`, {
+      const res = await apiFetch(`${API_URL}/user/password`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           current_password: currentPassword,
           new_password: newPassword,
@@ -107,10 +105,8 @@ export function SideBar() {
   async function handleSave() {
     setSaving(true)
     try {
-      const res = await fetch(`${API_URL}/user/me`, {
+      const res = await apiFetch(`${API_URL}/user/me`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           first_name: firstName,
           last_name: lastName,

@@ -1,11 +1,11 @@
 import { create } from "zustand"
-import { API_URL } from "@/lib/api"
+import { API_URL, apiFetch } from "@/lib/api"
 
 export type Log = {
-  UserName: string
-  DeviceName: string
-  Action: "Created" | "Updated" | "Deleted"
-  CreatedAt: string
+  user_name: string
+  device_name: string
+  action: "Created" | "Updated" | "Deleted"
+  created_at: string
 }
 
 type LogsStore = {
@@ -24,9 +24,8 @@ export const useLogsStore = create<LogsStore>((set) => ({
     set({ loading: true, error: null })
 
     try {
-      const res = await fetch(`${API_URL}/logs`, {
+      const res = await apiFetch(`${API_URL}/logs`, {
         method: "GET",
-        credentials: "include",
       })
 
       if (!res.ok) {

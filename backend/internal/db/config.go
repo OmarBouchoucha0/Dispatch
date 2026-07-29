@@ -120,6 +120,43 @@ func GetConfigByID(ctx context.Context, id string) (Config, error) {
 	return cfg, nil
 }
 
+type ConfigSnapshot struct {
+	DeviceID   string          `json:"device_id"`
+	DeviceName string          `json:"device_name"`
+	Name       string          `json:"name"`
+	Content    json.RawMessage `json:"content"`
+}
+
+func GetAllConfigs(ctx context.Context) ([]ConfigSnapshot, error) {
+	rows, err := Pool.Query(
+		ctx,
+		`
+		SELECT c.device_id, COALESCE(d.name, ''), c.name, c.content
+		FROM configs c
+		LEFT JOIN devices d ON d.id = c.device_id
+		`,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var configs []ConfigSnapshot
+	for rows.Next() {
+		var cfg ConfigSnapshot
+		err := rows.Scan(&cfg.DeviceID, &cfg.DeviceName, &cfg.Name, &cfg.Content)
+		if err != nil {
+			return nil, err
+		}
+		configs = append(configs, cfg)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return configs, nil
+}
+
 func DeleteConfig(ctx context.Context, id string) error {
 	cmd, err := Pool.Exec(
 		ctx,
