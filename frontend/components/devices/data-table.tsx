@@ -102,12 +102,15 @@ export function DataTable<TData, TValue>({
         ref={tableContainerRef}
         className="flex-1 min-h-0 overflow-hidden rounded-none "
       >
-        <Table>
+        <Table style={{ tableLayout: "fixed" }}>
           <TableHeader ref={headerRef}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    style={{ width: (header.column.columnDef.meta as { width?: string })?.width }}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(

@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { API_URL, apiFetch } from "@/lib/api"
 
 export type User = {
+  id: string
   first_name: string
   last_name: string
   email: string
@@ -13,10 +14,12 @@ type UsersStore = {
   loading: boolean
   error: string | null
   sync: () => Promise<void>
+  updateUser: (id: string, fields: { first_name?: string; last_name?: string; email?: string; created_at?: string }) => Promise<void>
+  deleteUser: (id: string) => Promise<void>
   clear: () => void
 }
 
-export const useUserStore = create<UsersStore>((set) => ({
+export const useUserStore = create<UsersStore>((set, get) => ({
   users: [],
   loading: false,
   error: null,
@@ -43,6 +46,21 @@ export const useUserStore = create<UsersStore>((set) => ({
     } finally {
       set({ loading: false })
     }
+  },
+
+  updateUser: async (id, fields) => {
+    await apiFetch(`${API_URL}/user/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(fields),
+    })
+    await get().sync()
+  },
+
+  deleteUser: async (id) => {
+    await apiFetch(`${API_URL}/user/${id}`, {
+      method: "DELETE",
+    })
+    await get().sync()
   },
 
   clear: () => set({ users: [], loading: false, error: null }),

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -68,7 +70,7 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 	device := db.Device{
 		Name: req.Name,
 	}
-	err = db.AddDevice(ctx, device)
+	created, err := db.AddDevice(ctx, device)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -80,6 +82,13 @@ func AddDevice(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(ListDevicesResponse{
+		ID:        created.ID,
+		Name:      created.Name,
+		CreatedAt: created.CreatedAt,
+	})
 	slog.Info("device added")
 }
 
@@ -168,4 +177,39 @@ func DeleteDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info("device deleted")
+}
+
+func UpdateDevice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := chi.URLParam(r, "id")
+
+	var req struct {
+		Name *string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.UpdateDevice(ctx, id, req.Name); err != nil {
+		slog.Error("update device", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func DeleteDeviceByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := chi.URLParam(r, "id")
+
+	if err := db.DeleteDeviceByID(ctx, id); err != nil {
+		slog.Error("delete device", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

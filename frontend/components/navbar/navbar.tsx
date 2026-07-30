@@ -105,22 +105,30 @@ export function NavBar() {
     const { changedFiles, deletedFiles } = useCommitStore.getState()
     const configs = useConfigStore.getState().configs
 
-    const configsAfter = configs
-      .filter((c) => !(c.id in deletedFiles))
-      .map((c) => {
-        if (c.id in changedFiles) {
-          return {
+    const configsAfter: { device_id: string; name: string; content: unknown }[] = []
+
+    for (const c of configs) {
+      if (c.id in deletedFiles) continue
+
+      if (c.id in changedFiles) {
+        try {
+          configsAfter.push({
             device_id: c.device_id,
             name: c.name,
             content: JSON.parse(changedFiles[c.id]),
-          }
+          })
+        } catch {
+          toast.error(`Invalid JSON in "${c.name}"`)
+          return null
         }
-        return {
+      } else {
+        configsAfter.push({
           device_id: c.device_id,
           name: c.name,
           content: c.content,
-        }
-      })
+        })
+      }
+    }
 
     return configsAfter
   }
@@ -129,6 +137,7 @@ export function NavBar() {
     setScheduleLoading(true)
     try {
       const configsAfter = buildConfigsAfter()
+      if (!configsAfter) return
       const ok = await scheduleEvent(name, scheduledAt?.toISOString(), configsAfter)
       if (ok) {
         await useEventsStore.getState().sync()
@@ -275,6 +284,7 @@ export function NavBar() {
                 placeholder="Event name"
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
+                disabled={!hasChanges || scheduleLoading}
                 className="h-7 text-xs"
               />
             </div>

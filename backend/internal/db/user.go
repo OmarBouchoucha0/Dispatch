@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -131,6 +133,51 @@ func UpdateUser(ctx context.Context, userID, firstName, lastName, email string) 
 		WHERE id = $4
 		`,
 		firstName, lastName, email, userID,
+	)
+	return err
+}
+
+func UpdateUserByID(ctx context.Context, id string, firstName, lastName, email *string) error {
+	query := `UPDATE users SET `
+	args := []any{}
+	argIdx := 1
+	sets := []string{}
+
+	if firstName != nil {
+		sets = append(sets, fmt.Sprintf("first_name = $%d", argIdx))
+		args = append(args, *firstName)
+		argIdx++
+	}
+	if lastName != nil {
+		sets = append(sets, fmt.Sprintf("last_name = $%d", argIdx))
+		args = append(args, *lastName)
+		argIdx++
+	}
+	if email != nil {
+		sets = append(sets, fmt.Sprintf("email = $%d", argIdx))
+		args = append(args, *email)
+		argIdx++
+	}
+
+	if len(sets) == 0 {
+		return nil
+	}
+
+	query += strings.Join(sets, ", ")
+	query += fmt.Sprintf(" WHERE id = $%d", argIdx)
+	args = append(args, id)
+
+	_, err := Pool.Exec(ctx, query, args...)
+	return err
+}
+
+func DeleteUser(ctx context.Context, id string) error {
+	_, err := Pool.Exec(
+		ctx,
+		`
+		DELETE FROM users WHERE id = $1
+		`,
+		id,
 	)
 	return err
 }

@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -87,21 +89,20 @@ func GetDevices(ctx context.Context) ([]Device, error) {
 	return devices, nil
 }
 
-func AddDevice(ctx context.Context, device Device) error {
-	_, err := Pool.Exec(
+func AddDevice(ctx context.Context, device Device) (*Device, error) {
+	err := Pool.QueryRow(
 		ctx,
 		`
-		INSERT INTO devices (
-			name
-		)
+		INSERT INTO devices (name)
 		VALUES ($1)
+		RETURNING id, created_at
 		`,
 		device.Name,
-	)
+	).Scan(&device.ID, &device.CreatedAt)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &device, nil
 }
 
 func RenameDevice(ctx context.Context, originalName string, newName string) error {
@@ -135,6 +136,50 @@ func DeleteDevice(ctx context.Context, name string) error {
 		WHERE name = $1
 		`,
 		name,
+	)
+	if err != nil {
+		return err
+	}
+
+	if cmd.RowsAffected() == 0 {
+		return errors.New("device not found")
+	}
+
+	return nil
+}
+
+func UpdateDevice(ctx context.Context, id string, name *string) error {
+	query := `UPDATE devices SET `
+	args := []any{}
+	argIdx := 1
+	sets := []string{}
+
+	if name != nil {
+		sets = append(sets, fmt.Sprintf("name = $%d", argIdx))
+		args = append(args, *name)
+		argIdx++
+	}
+
+	if len(sets) == 0 {
+		return nil
+	}
+
+	query += strings.Join(sets, ", ")
+	query += fmt.Sprintf(" WHERE id = $%d", argIdx)
+	args = append(args, id)
+
+	_, err := Pool.Exec(ctx, query, args...)
+	return err
+}
+
+func DeleteDeviceByID(ctx context.Context, id string) error {
+	cmd, err := Pool.Exec(
+		ctx,
+		`
+		DELETE FROM devices
+		WHERE id = $1
+		`,
+		id,
 	)
 	if err != nil {
 		return err

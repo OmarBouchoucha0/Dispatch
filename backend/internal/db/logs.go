@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -32,6 +34,56 @@ func AddLog(ctx context.Context, log Log) error {
 		return err
 	}
 	return nil
+}
+
+func UpdateLog(ctx context.Context, id string, userID, deviceID, action *string, createdAt *time.Time) error {
+	query := `UPDATE logs SET `
+	args := []any{}
+	argIdx := 1
+	sets := []string{}
+
+	if userID != nil {
+		sets = append(sets, fmt.Sprintf("user_id = $%d", argIdx))
+		args = append(args, *userID)
+		argIdx++
+	}
+	if deviceID != nil {
+		sets = append(sets, fmt.Sprintf("device_id = $%d", argIdx))
+		args = append(args, *deviceID)
+		argIdx++
+	}
+	if action != nil {
+		sets = append(sets, fmt.Sprintf("action = $%d", argIdx))
+		args = append(args, *action)
+		argIdx++
+	}
+	if createdAt != nil {
+		sets = append(sets, fmt.Sprintf("created_at = $%d", argIdx))
+		args = append(args, *createdAt)
+		argIdx++
+	}
+
+	if len(sets) == 0 {
+		return nil
+	}
+
+	query += strings.Join(sets, ", ")
+	query += fmt.Sprintf(" WHERE id = $%d", argIdx)
+	args = append(args, id)
+
+	_, err := Pool.Exec(ctx, query, args...)
+	return err
+}
+
+func DeleteLog(ctx context.Context, id string) error {
+	_, err := Pool.Exec(
+		ctx,
+		`
+		DELETE FROM logs WHERE id = $1
+		`,
+		id,
+	)
+	return err
 }
 
 func GetLogs(ctx context.Context) ([]Log, error) {

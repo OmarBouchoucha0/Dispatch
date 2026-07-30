@@ -62,8 +62,8 @@ export function Explorer() {
     <div className="text-xs select-none py-1">
       {pendingDeviceName !== null && (
         <DeviceCreateRow
-          onCreate={(name) => {
-            createDevice(name)
+          onCreate={async (name) => {
+            await createDevice(name)
             setPendingDeviceName(null)
           }}
           onCancel={() => setPendingDeviceName(null)}

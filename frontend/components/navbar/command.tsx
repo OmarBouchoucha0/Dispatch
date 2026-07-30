@@ -143,10 +143,6 @@ export function CommandPalette() {
                 <GitCommitVertical className="size-4" />
                 Commit
               </CommandItem>
-              <CommandItem onSelect={async () => { await sync(); toast.success("Configs synchronized"); close() }}>
-                <RefreshCw className="size-4" />
-                Sync
-              </CommandItem>
             </CommandGroup>
           </CommandList>
         </Command>

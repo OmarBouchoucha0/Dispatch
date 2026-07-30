@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/auth"
 	"github.com/OmarBouchoucha0/Dispatch/backend/internal/db"
 	"golang.org/x/crypto/bcrypt"
@@ -47,6 +49,7 @@ func checkPassword(password string, hash string) bool {
 }
 
 type ListUsersRequest struct {
+	ID        string    `json:"id"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
 	Email     string    `json:"email"`
@@ -67,7 +70,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 	var req []ListUsersRequest
 
 	for _, user := range users {
-		req = append(req, ListUsersRequest{FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, CreatedAt: user.CreatedAt.In(loc)})
+		req = append(req, ListUsersRequest{ID: user.ID, FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, CreatedAt: user.CreatedAt.In(loc)})
 	}
 
 	err = json.NewEncoder(w).Encode(req)
@@ -378,4 +381,41 @@ func Me(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 
 	slog.Info("auth request")
+}
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := chi.URLParam(r, "id")
+
+	var req struct {
+		FirstName *string `json:"first_name"`
+		LastName  *string `json:"last_name"`
+		Email     *string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		slog.Error("json decoding", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.UpdateUserByID(ctx, id, req.FirstName, req.LastName, req.Email); err != nil {
+		slog.Error("update user", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := chi.URLParam(r, "id")
+
+	if err := db.DeleteUser(ctx, id); err != nil {
+		slog.Error("delete user", "error", err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

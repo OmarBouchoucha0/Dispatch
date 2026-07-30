@@ -258,7 +258,7 @@ export const useConfigStore = create<ConfigStore>()(
         }
 
         const newConfig: Config = {
-          id: finalName,
+          id: `${deviceID}::${finalName}`,
           device_id: deviceID,
           device_name: deviceName,
           name: finalName,

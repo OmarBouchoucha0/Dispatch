@@ -111,6 +111,37 @@ func DeployEvent(ctx context.Context, event Event) error {
 		}
 	}
 
+	beforeMap := make(map[string]struct{})
+	for _, s := range snapshot {
+		beforeMap[fmt.Sprintf("%s::%s", s.DeviceID, s.Name)] = struct{}{}
+	}
+
+	afterMap := make(map[string]struct{})
+	for _, a := range after {
+		afterMap[fmt.Sprintf("%s::%s", a.DeviceID, a.Name)] = struct{}{}
+	}
+
+	for _, s := range snapshot {
+		key := fmt.Sprintf("%s::%s", s.DeviceID, s.Name)
+		if _, exists := afterMap[key]; !exists {
+			if _, err := tx.Exec(ctx, `INSERT INTO logs (user_id, device_id, action) VALUES ($1, $2, $3)`, event.UserID, s.DeviceID, "Deleted"); err != nil {
+				return fmt.Errorf("log delete %s/%s: %w", s.DeviceID, s.Name, err)
+			}
+		}
+	}
+
+	for _, a := range after {
+		key := fmt.Sprintf("%s::%s", a.DeviceID, a.Name)
+		_, existed := beforeMap[key]
+		action := "Created"
+		if existed {
+			action = "Updated"
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO logs (user_id, device_id, action) VALUES ($1, $2, $3)`, event.UserID, a.DeviceID, action); err != nil {
+			return fmt.Errorf("log %s %s/%s: %w", action, a.DeviceID, a.Name, err)
+		}
+	}
+
 	snapshotJSON, err := json.Marshal(snapshot)
 	if err != nil {
 		return fmt.Errorf("marshal snapshot: %w", err)

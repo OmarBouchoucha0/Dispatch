@@ -135,6 +135,8 @@ func mount() http.Handler {
 			r.Put("/password", handler.ChangePassword)
 			r.Get("/", handler.ListUsers)
 			r.Post("/", handler.AddUser)
+			r.Put("/{id}", handler.UpdateUser)
+			r.Delete("/{id}", handler.DeleteUser)
 		})
 	})
 
@@ -155,6 +157,8 @@ func mount() http.Handler {
 		r.Post("/", handler.AddDevice)
 		r.Put("/rename", handler.RenameDevice)
 		r.Delete("/", handler.DeleteDevice)
+		r.Put("/{id}", handler.UpdateDevice)
+		r.Delete("/{id}", handler.DeleteDeviceByID)
 	})
 
 	r.Route("/event", func(r chi.Router) {
@@ -169,6 +173,8 @@ func mount() http.Handler {
 		r.Use(auth.Middleware, handler.TimezoneMiddleware)
 
 		r.Get("/", handler.ListLogs)
+		r.Put("/{id}", handler.UpdateLog)
+		r.Delete("/{id}", handler.DeleteLog)
 	})
 	return r
 }
