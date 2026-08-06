@@ -12,10 +12,11 @@ type DeviceStore = {
   loading: boolean
   error: string | null
   sync: () => Promise<void>
-  createDevice: (name: string) => Promise<void>
+  createDevice: (name: string) => void
   renameDevice: (id: string, name: string) => void
   updateDevice: (id: string, fields: { name?: string; created_at?: string }) => Promise<void>
   deleteDevice: (id: string) => Promise<void>
+  deleteDeviceLocal: (id: string) => void
   pendingDeviceName: string | null
   setPendingDeviceName: (name: string | null) => void
   clear: () => void
@@ -51,7 +52,7 @@ export const useDeviceStore = create<DeviceStore>()(
       }
     },
 
-    createDevice: async (name) => {
+    createDevice: (name) => {
       const state = useDeviceStore.getState()
       const existingNames = new Set(state.devices.map((d) => d.name))
       let finalName = name
@@ -61,14 +62,12 @@ export const useDeviceStore = create<DeviceStore>()(
         counter++
       }
 
-      const res = await apiFetch(`${API_URL}/device`, {
-        method: "POST",
-        body: JSON.stringify({ device_name: finalName }),
-      })
-      if (!res.ok) throw new Error("Failed to create device")
-      const device: Device = await res.json()
+      const id = `local-${crypto.randomUUID()}`
       set((state) => ({
-        devices: [...state.devices, device],
+        devices: [
+          ...state.devices,
+          { id, name: finalName, created_at: new Date().toISOString() },
+        ],
       }))
     },
 
@@ -93,6 +92,11 @@ export const useDeviceStore = create<DeviceStore>()(
     })
     await get().sync()
   },
+
+  deleteDeviceLocal: (id) =>
+    set((state) => ({
+      devices: state.devices.filter((d) => d.id !== id),
+    })),
 
     pendingDeviceName: null,
 

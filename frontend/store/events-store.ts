@@ -8,6 +8,11 @@ export type ConfigSnapshotItem = {
   content: Record<string, unknown>
 }
 
+export type DeviceSnapshotItem = {
+  id: string
+  name: string
+}
+
 export type ScheduleEvent = {
   id: string
   title: string
@@ -16,6 +21,8 @@ export type ScheduleEvent = {
   createdAt: string
   configsBefore: ConfigSnapshotItem[]
   configsAfter: ConfigSnapshotItem[]
+  devicesBefore: DeviceSnapshotItem[]
+  devicesAfter: DeviceSnapshotItem[]
 }
 
 type BackendEvent = {
@@ -23,6 +30,8 @@ type BackendEvent = {
   name: string
   configs_before: ConfigSnapshotItem[] | null
   configs_after: ConfigSnapshotItem[]
+  devices_before: DeviceSnapshotItem[] | null
+  devices_after: DeviceSnapshotItem[] | null
   scheduled_at: string
   status: "pending" | "deployed" | "cancelled"
   created_at: string
@@ -61,6 +70,8 @@ export const useEventsStore = create<EventsStore>((set) => ({
         createdAt: e.created_at,
         configsBefore: e.configs_before ?? [],
         configsAfter: e.configs_after,
+        devicesBefore: e.devices_before ?? [],
+        devicesAfter: e.devices_after ?? [],
       }))
 
       set({ events })

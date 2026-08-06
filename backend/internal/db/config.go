@@ -127,6 +127,45 @@ type ConfigSnapshot struct {
 	Content    json.RawMessage `json:"content"`
 }
 
+type DeviceConfig struct {
+	ID         string          `json:"id"`
+	DeviceID   string          `json:"device_id"`
+	DeviceName string          `json:"device_name"`
+	Name       string          `json:"name"`
+	Content    json.RawMessage `json:"content"`
+}
+
+func GetConfigsByDeviceID(ctx context.Context, deviceID string) ([]DeviceConfig, error) {
+	rows, err := Pool.Query(
+		ctx,
+		`
+		SELECT c.id, c.device_id, COALESCE(d.name, ''), c.name, c.content
+		FROM configs c
+		LEFT JOIN devices d ON d.id = c.device_id
+		WHERE c.device_id = $1
+		`,
+		deviceID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var configs []DeviceConfig
+	for rows.Next() {
+		var cfg DeviceConfig
+		if err := rows.Scan(&cfg.ID, &cfg.DeviceID, &cfg.DeviceName, &cfg.Name, &cfg.Content); err != nil {
+			return nil, err
+		}
+		configs = append(configs, cfg)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return configs, nil
+}
+
 func GetAllConfigs(ctx context.Context) ([]ConfigSnapshot, error) {
 	rows, err := Pool.Query(
 		ctx,

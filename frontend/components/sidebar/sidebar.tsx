@@ -166,41 +166,45 @@ export function SideBar() {
         </TooltipContent >
       </Tooltip>
 
-      <Tooltip >
-        <TooltipTrigger asChild>
-          <SidebarIcon icon={ScrollText}
-            onPointerDown={(e) => { e.preventDefault(); setView("logs") }}
-            active={view === "logs"}
-          />
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Logs</p>
-        </TooltipContent >
-      </Tooltip>
+      {user?.role === "admin" && (
+        <>
+          <Tooltip >
+            <TooltipTrigger asChild>
+              <SidebarIcon icon={ScrollText}
+                onPointerDown={(e) => { e.preventDefault(); setView("logs") }}
+                active={view === "logs"}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Logs</p>
+            </TooltipContent >
+          </Tooltip>
 
-      <Tooltip >
-        <TooltipTrigger asChild>
-          <SidebarIcon icon={Users}
-            onPointerDown={(e) => { e.preventDefault(); setView("users") }}
-            active={view === "users"}
-          />
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Users</p>
-        </TooltipContent >
-      </Tooltip>
+          <Tooltip >
+            <TooltipTrigger asChild>
+              <SidebarIcon icon={Users}
+                onPointerDown={(e) => { e.preventDefault(); setView("users") }}
+                active={view === "users"}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Users</p>
+            </TooltipContent >
+          </Tooltip>
 
-      <Tooltip >
-        <TooltipTrigger asChild>
-          <SidebarIcon icon={Monitor}
-            onPointerDown={(e) => { e.preventDefault(); setView("devices") }}
-            active={view === "devices"}
-          />
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Devices</p>
-        </TooltipContent >
-      </Tooltip>
+          <Tooltip >
+            <TooltipTrigger asChild>
+              <SidebarIcon icon={Monitor}
+                onPointerDown={(e) => { e.preventDefault(); setView("devices") }}
+                active={view === "devices"}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Devices</p>
+            </TooltipContent >
+          </Tooltip>
+        </>
+      )}
 
       <div className="mt-auto flex flex-col items-center gap-0">
         <Dialog open={accountOpen} onOpenChange={(open) => {

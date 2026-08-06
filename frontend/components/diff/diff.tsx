@@ -11,10 +11,13 @@ import { useTheme } from "next-themes"
 import type { FileNode } from "@/lib/build-tree"
 import { ChevronDown, ChevronRight } from "lucide-react"
 
+type DeviceChangeKind = "added" | "renamed" | "removed"
+
 export function Diff() {
   const configs = useConfigStore((s) => s.configs)
   const devices = useDeviceStore((s) => s.devices)
   const snapshots = useCommitStore((s) => s.snapshots)
+  const deviceSnapshots = useCommitStore((s) => s.deviceSnapshots)
   const changedFiles = useCommitStore((s) => s.changedFiles)
   const deletedFiles = useCommitStore((s) => s.deletedFiles)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -31,11 +34,43 @@ export function Diff() {
 
   const changedConfigs = configs.filter((c) => c.id in changedFiles)
   const treeItems = [...changedConfigs, ...deletedItems]
-  const tree = buildTree(treeItems, devices).filter(
-    (folder) => folder.children && folder.children.length > 0
-  )
+  const tree = buildTree(treeItems, devices)
 
-  const effectiveSelectedId = selectedId ?? tree[0]?.children?.[0]?.id ?? null
+  function deviceChangeFor(deviceID: string): DeviceChangeKind | null {
+    const current = devices.find((d) => d.id === deviceID)
+    const oldName = deviceSnapshots[deviceID]
+
+    if (current) {
+      if (oldName === undefined) return "added"
+      if (oldName !== current.name) return "renamed"
+      return null
+    }
+
+    if (oldName !== undefined) return "removed"
+    return null
+  }
+
+  const removedEmptyDevices: FileNode[] = Object.entries(deviceSnapshots)
+    .filter(([id]) => !devices.some((d) => d.id === id))
+    .filter(([id]) => !tree.some((f) => f.id === `folder-${id}`))
+    .map(([id, name]) => ({
+      id: `folder-${id}`,
+      name,
+      type: "folder",
+      children: [],
+    }))
+
+  const visibleTree = [...tree, ...removedEmptyDevices]
+    .filter((folder) => {
+      const deviceID = folder.id.replace("folder-", "")
+      return (
+        (folder.children?.length ?? 0) > 0 ||
+        deviceChangeFor(deviceID) !== null
+      )
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  const effectiveSelectedId = selectedId ?? visibleTree[0]?.children?.[0]?.id ?? null
 
   function getContent(id: string) {
     const isDeleted = id in deletedFiles
@@ -82,8 +117,7 @@ export function Diff() {
   const newFiles = new Set(
     Object.keys(changedFiles).filter((id) => !(id in snapshots))
   )
-  const changedCount = Object.keys(changedFiles).length
-  const deletedCount = Object.keys(deletedFiles).length
+  const hasChanges = visibleTree.length > 0
 
   return (
     <div className="flex h-full gap-0">
@@ -91,12 +125,12 @@ export function Diff() {
         <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Explorer
         </div>
-        {changedCount === 0 && deletedCount === 0 ? (
+        {!hasChanges ? (
           <div className="px-3 py-2 text-muted-foreground italic">
             No changes to commit
           </div>
         ) : (
-          tree.map((node) => (
+          visibleTree.map((node) => (
             <DiffTreeNode
               key={node.id}
               node={node}
@@ -105,6 +139,7 @@ export function Diff() {
               onSelect={setSelectedId}
               deletedFiles={deletedFiles}
               newFiles={newFiles}
+              deviceChange={deviceChangeFor(node.id.replace("folder-", ""))}
             />
           ))
         )}
@@ -143,15 +178,25 @@ type DiffTreeNodeProps = {
   onSelect: (id: string) => void
   deletedFiles: Record<string, unknown>
   newFiles: Set<string>
+  deviceChange: DeviceChangeKind | null
 }
 
-function DiffTreeNode({ node, depth, selectedId, onSelect, deletedFiles, newFiles }: DiffTreeNodeProps) {
+function DiffTreeNode({ node, depth, selectedId, onSelect, deletedFiles, newFiles, deviceChange }: DiffTreeNodeProps) {
   const [expanded, setExpanded] = useState(true)
   const isSelected = node.type === "file" && selectedId === node.id
   const isDeleted = node.type === "file" && node.id in deletedFiles
   const isNew = node.type === "file" && newFiles.has(node.id)
 
   if (node.type === "folder") {
+    const folderColor =
+      deviceChange === "added"
+        ? "text-[#5ecc71]"
+        : deviceChange === "removed"
+          ? "text-destructive"
+          : deviceChange === "renamed"
+            ? "text-amber-500"
+            : "text-foreground/80"
+
     return (
       <div>
         <div
@@ -163,7 +208,7 @@ function DiffTreeNode({ node, depth, selectedId, onSelect, deletedFiles, newFile
           ) : (
             <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
           )}
-          <span className="truncate text-foreground/80">{node.name}</span>
+          <span className={cn("truncate", folderColor)}>{node.name}</span>
         </div>
         {expanded &&
           node.children?.map((child) => (
@@ -175,6 +220,7 @@ function DiffTreeNode({ node, depth, selectedId, onSelect, deletedFiles, newFile
               onSelect={onSelect}
               deletedFiles={deletedFiles}
               newFiles={newFiles}
+              deviceChange={null}
             />
           ))}
       </div>

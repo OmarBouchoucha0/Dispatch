@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { useConfigStore } from "./config-store"
 import { useEditorStore } from "./editor-store"
+import { useDeviceStore } from "./device-store"
 
 export type DeletedFileInfo = {
   id: string
@@ -12,6 +13,7 @@ export type DeletedFileInfo = {
 
 type CommitStore = {
   snapshots: Record<string, string>
+  deviceSnapshots: Record<string, string>
   changedFiles: Record<string, string>
   deletedFiles: Record<string, DeletedFileInfo>
 
@@ -25,6 +27,7 @@ type CommitStore = {
 
 export const useCommitStore = create<CommitStore>((set, get) => ({
   snapshots: {},
+  deviceSnapshots: {},
   changedFiles: {},
   deletedFiles: {},
 
@@ -35,7 +38,13 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
       snapshots[config.id] =
         config.content === null ? "" : JSON.stringify(config.content, null, 2)
     }
-    set({ snapshots })
+
+    const deviceSnapshots: Record<string, string> = {}
+    for (const device of useDeviceStore.getState().devices) {
+      deviceSnapshots[device.id] = device.name
+    }
+
+    set({ snapshots, deviceSnapshots })
     get().computeChanged()
   },
 
@@ -106,6 +115,6 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
   },
 
   clear: () => {
-    set({ snapshots: {}, changedFiles: {}, deletedFiles: {} })
+    set({ snapshots: {}, deviceSnapshots: {}, changedFiles: {}, deletedFiles: {} })
   },
 }))

@@ -59,6 +59,34 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ListConfigsByDevice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	name := chi.URLParam(r, "name")
+	if name == "" {
+		http.Error(w, "name is required", http.StatusBadRequest)
+		return
+	}
+
+	device, err := db.GetDeviceByName(ctx, name)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	configs, err := db.GetConfigsByDeviceID(ctx, device.ID)
+	if err != nil {
+		slog.Error("get configs by device", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(configs); err != nil {
+		slog.Error("json encoding", "error", err)
+	}
+}
+
 type CreateConfigRequest struct {
 	DeviceID string          `json:"device_id"`
 	Name     string          `json:"name"`

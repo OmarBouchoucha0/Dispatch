@@ -133,6 +133,10 @@ func mount() http.Handler {
 			r.Get("/me", handler.Me)
 			r.Put("/me", handler.UpdateMe)
 			r.Put("/password", handler.ChangePassword)
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(auth.Middleware, handler.TimezoneMiddleware, auth.RequireAdmin)
 			r.Get("/", handler.ListUsers)
 			r.Post("/", handler.AddUser)
 			r.Put("/{id}", handler.UpdateUser)
@@ -157,6 +161,7 @@ func mount() http.Handler {
 		r.Post("/", handler.AddDevice)
 		r.Put("/rename", handler.RenameDevice)
 		r.Delete("/", handler.DeleteDevice)
+		r.Get("/{name}", handler.ListConfigsByDevice)
 		r.Put("/{id}", handler.UpdateDevice)
 		r.Delete("/{id}", handler.DeleteDeviceByID)
 	})
@@ -170,7 +175,7 @@ func mount() http.Handler {
 	})
 
 	r.Route("/logs", func(r chi.Router) {
-		r.Use(auth.Middleware, handler.TimezoneMiddleware)
+		r.Use(auth.Middleware, handler.TimezoneMiddleware, auth.RequireAdmin)
 
 		r.Get("/", handler.ListLogs)
 		r.Put("/{id}", handler.UpdateLog)

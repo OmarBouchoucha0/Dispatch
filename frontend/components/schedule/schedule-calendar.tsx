@@ -217,6 +217,8 @@ export function ScheduleCalendar() {
             <EventDiff
               configsBefore={selectedEvent.configsBefore}
               configsAfter={selectedEvent.configsAfter}
+              devicesBefore={selectedEvent.devicesBefore}
+              devicesAfter={selectedEvent.devicesAfter}
             />
           </div>
         </div>

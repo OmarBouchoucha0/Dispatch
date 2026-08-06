@@ -105,7 +105,12 @@ export function NavBar() {
     const { changedFiles, deletedFiles } = useCommitStore.getState()
     const configs = useConfigStore.getState().configs
 
-    const configsAfter: { device_id: string; name: string; content: unknown }[] = []
+    const configsAfter: {
+      device_id: string
+      device_name: string
+      name: string
+      content: unknown
+    }[] = []
 
     for (const c of configs) {
       if (c.id in deletedFiles) continue
@@ -114,6 +119,7 @@ export function NavBar() {
         try {
           configsAfter.push({
             device_id: c.device_id,
+            device_name: c.device_name,
             name: c.name,
             content: JSON.parse(changedFiles[c.id]),
           })
@@ -124,6 +130,7 @@ export function NavBar() {
       } else {
         configsAfter.push({
           device_id: c.device_id,
+          device_name: c.device_name,
           name: c.name,
           content: c.content,
         })
@@ -138,9 +145,26 @@ export function NavBar() {
     try {
       const configsAfter = buildConfigsAfter()
       if (!configsAfter) return
-      const ok = await scheduleEvent(name, scheduledAt?.toISOString(), configsAfter)
+
+      const devicesAfter = useDeviceStore
+        .getState()
+        .devices.map((d) => ({ id: d.id, name: d.name }))
+
+      const ok = await scheduleEvent(
+        name,
+        scheduledAt?.toISOString(),
+        configsAfter,
+        devicesAfter
+      )
       if (ok) {
+        if (!scheduledAt) {
+          await Promise.all([
+            useDeviceStore.getState().sync(),
+            useConfigStore.getState().sync(),
+          ])
+        }
         await useEventsStore.getState().sync()
+        useCommitStore.getState().snapshot()
         setCommitDialogOpen(false)
         setEventName("")
         useCommitStore.setState({ changedFiles: {}, deletedFiles: {} })

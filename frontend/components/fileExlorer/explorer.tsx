@@ -127,7 +127,7 @@ function FileTreeNode({
   )
   const createConfig = useConfigStore((state) => state.createConfig)
   const renameDevice = useDeviceStore((state) => state.renameDevice)
-  const deleteDevice = useDeviceStore((state) => state.deleteDevice)
+  const deleteDeviceLocal = useDeviceStore((state) => state.deleteDeviceLocal)
   const setLastActiveDeviceID = useConfigStore(
     (state) => state.setLastActiveDeviceID
   )
@@ -293,7 +293,7 @@ function FileTreeNode({
             onSelect={() => {
               const deviceID = node.id.replace("folder-", "")
               deleteConfigsByDevice(deviceID)
-              deleteDevice(deviceID)
+              deleteDeviceLocal(deviceID)
             }}
           >
             Delete Device

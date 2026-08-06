@@ -1,0 +1,3 @@
+ALTER TABLE events
+  ADD COLUMN IF NOT EXISTS devices_before JSONB,
+  ADD COLUMN IF NOT EXISTS devices_after JSONB;

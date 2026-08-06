@@ -6,12 +6,17 @@ import { cn } from "@/lib/utils"
 import { useDeviceStore } from "@/store/device-store"
 import { useConfigStore } from "@/store/config-store"
 import { useTheme } from "next-themes"
-import type { ConfigSnapshotItem } from "@/store/events-store"
+import type {
+  ConfigSnapshotItem,
+  DeviceSnapshotItem,
+} from "@/store/events-store"
 import { ChevronDown, ChevronRight } from "lucide-react"
 
 type EventDiffProps = {
   configsBefore: ConfigSnapshotItem[]
   configsAfter: ConfigSnapshotItem[]
+  devicesBefore: DeviceSnapshotItem[]
+  devicesAfter: DeviceSnapshotItem[]
 }
 
 type DiffFile = {
@@ -30,12 +35,31 @@ type TreeNode = {
   children?: TreeNode[]
 }
 
-function normalizeContent(obj: Record<string, unknown> | undefined | null): string {
-  if (!obj) return ""
-  return JSON.stringify(obj, Object.keys(obj).sort(), 2)
+function normalizeContent(obj: unknown): string {
+  if (obj === null || obj === undefined) return ""
+  return JSON.stringify(deepSortKeys(obj), null, 2)
 }
 
-export function EventDiff({ configsBefore, configsAfter }: EventDiffProps) {
+function deepSortKeys(obj: unknown): unknown {
+  if (Array.isArray(obj)) {
+    return obj.map(deepSortKeys)
+  }
+  if (obj !== null && typeof obj === "object") {
+    const sorted: Record<string, unknown> = {}
+    for (const key of Object.keys(obj).sort()) {
+      sorted[key] = deepSortKeys((obj as Record<string, unknown>)[key])
+    }
+    return sorted
+  }
+  return obj
+}
+
+export function EventDiff({
+  configsBefore,
+  configsAfter,
+  devicesBefore,
+  devicesAfter,
+}: EventDiffProps) {
   const devices = useDeviceStore((s) => s.devices)
   const deployedConfigs = useConfigStore((s) => s.configs)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)

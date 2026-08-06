@@ -29,11 +29,14 @@ import { useRouter } from "next/navigation"
 import { useConfigStore } from "@/store/config-store"
 import { useDeviceStore } from "@/store/device-store"
 import { useUiStore } from "@/store/ui-store"
+import { useAuth } from "@/components/auth/auth-provider"
 import { logout } from "@/lib/api"
 import { toast } from "sonner"
 
 export function CommandPalette() {
   const router = useRouter()
+  const { user } = useAuth()
+  const isAdmin = user?.role === "admin"
   const view = useUiStore((state) => state.view)
   const setView = useUiStore((state) => state.setView)
   const open = useUiStore((state) => state.commandPaletteOpen)
@@ -94,18 +97,22 @@ export function CommandPalette() {
                 <Files className="size-4" />
                 Schedule
               </CommandItem>
-              <CommandItem onSelect={() => { setView("logs"); close() }}>
-                <ScrollText className="size-4" />
-                Logs
-              </CommandItem>
-              <CommandItem onSelect={() => { setView("users"); close() }}>
-                <Users className="size-4" />
-                Users
-              </CommandItem>
-              <CommandItem onSelect={() => { setView("devices"); close() }}>
-                <Monitor className="size-4" />
-                Devices
-              </CommandItem>
+              {isAdmin && (
+                <>
+                  <CommandItem onSelect={() => { setView("logs"); close() }}>
+                    <ScrollText className="size-4" />
+                    Logs
+                  </CommandItem>
+                  <CommandItem onSelect={() => { setView("users"); close() }}>
+                    <Users className="size-4" />
+                    Users
+                  </CommandItem>
+                  <CommandItem onSelect={() => { setView("devices"); close() }}>
+                    <Monitor className="size-4" />
+                    Devices
+                  </CommandItem>
+                </>
+              )}
               <CommandItem onSelect={() => { setSettingsOpen(false); setCommitDialogOpen(false); setAccountOpen(true); close() }}>
                 <User className="size-4" />
                 Account

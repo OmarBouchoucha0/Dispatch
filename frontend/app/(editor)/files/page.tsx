@@ -68,6 +68,15 @@ function HomeContent() {
     }
   }, [loading, user, router])
 
+  const isAdmin = user?.role === "admin"
+
+  useEffect(() => {
+    const adminViews = ["logs", "users", "devices"]
+    if (user && !isAdmin && adminViews.includes(view)) {
+      setView("files")
+    }
+  }, [user, isAdmin, view, setView])
+
   useEffect(() => {
     if (!sidebarRef.current) return
     if (sidebarCollapsed && !sidebarRef.current.isCollapsed()) {

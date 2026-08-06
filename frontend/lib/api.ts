@@ -30,10 +30,20 @@ export function apiFetch(url: string, opts?: RequestInit): Promise<Response> {
 export async function scheduleEvent(
   name: string,
   scheduledAt: string | undefined,
-  configsAfter: { device_id: string; name: string; content: unknown }[]
+  configsAfter: {
+    device_id: string
+    device_name?: string
+    name: string
+    content: unknown
+  }[],
+  devicesAfter: { id: string; name: string }[]
 ): Promise<boolean> {
   try {
-    const body: Record<string, unknown> = { name, configs_after: configsAfter }
+    const body: Record<string, unknown> = {
+      name,
+      configs_after: configsAfter,
+      devices_after: devicesAfter,
+    }
     if (scheduledAt) {
       body.scheduled_at = scheduledAt
     }

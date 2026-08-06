@@ -12,9 +12,12 @@ import (
 )
 
 type ScheduleEventRequest struct {
-	Name        string          `json:"name"`
-	ScheduledAt time.Time       `json:"scheduled_at"`
+	Name         string          `json:"name"`
+	ScheduledAt  time.Time       `json:"scheduled_at"`
+	ConfigsBefore json.RawMessage `json:"configs_before"`
 	ConfigsAfter json.RawMessage `json:"configs_after"`
+	DevicesBefore json.RawMessage `json:"devices_before"`
+	DevicesAfter  json.RawMessage `json:"devices_after"`
 }
 
 type EventResponse struct {
@@ -22,6 +25,8 @@ type EventResponse struct {
 	Name          string           `json:"name"`
 	ConfigsBefore *json.RawMessage `json:"configs_before"`
 	ConfigsAfter  json.RawMessage  `json:"configs_after"`
+	DevicesBefore *json.RawMessage `json:"devices_before"`
+	DevicesAfter  json.RawMessage  `json:"devices_after"`
 	ScheduledAt   time.Time        `json:"scheduled_at"`
 	Status        string           `json:"status"`
 	CreatedAt     time.Time        `json:"created_at"`
@@ -36,6 +41,8 @@ func eventToResponse(e *db.Event, r *http.Request) EventResponse {
 		Name:          e.Name,
 		ConfigsBefore: e.ConfigsBefore,
 		ConfigsAfter:  e.ConfigsAfter,
+		DevicesBefore: e.DevicesBefore,
+		DevicesAfter:  e.DevicesAfter,
 		ScheduledAt:   e.ScheduledAt.In(loc),
 		Status:        e.Status,
 		CreatedAt:     e.CreatedAt.In(loc),
@@ -90,9 +97,10 @@ func ScheduleEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type rawItem struct {
-		DeviceID string          `json:"device_id"`
-		Name     string          `json:"name"`
-		Content  json.RawMessage `json:"content"`
+		DeviceID   string          `json:"device_id"`
+		DeviceName string          `json:"device_name"`
+		Name       string          `json:"name"`
+		Content    json.RawMessage `json:"content"`
 	}
 
 	var items []rawItem
@@ -111,7 +119,7 @@ func ScheduleEvent(w http.ResponseWriter, r *http.Request) {
 	enriched := make([]enrichedItem, len(items))
 	for i, item := range items {
 		device, err := db.GetDeviceByID(ctx, item.DeviceID)
-		deviceName := ""
+		deviceName := item.DeviceName
 		if err == nil {
 			deviceName = device.Name
 		}
@@ -131,13 +139,52 @@ func ScheduleEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event := &db.Event{
-		Name:         req.Name,
-		ConfigsAfter: enrichedJSON,
-		ScheduledAt:  req.ScheduledAt,
-		UserID:       claims.UserID,
+	configsBefore, err := db.GetAllConfigs(ctx)
+	if err != nil {
+		slog.Error("capture configs_before", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	var configsBeforeJSON json.RawMessage
+	configsBeforeJSON, err = json.Marshal(configsBefore)
+	if err != nil {
+		slog.Error("marshal configs_before", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
+	type deviceSnapshot struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+
+	devices, err := db.GetDevices(ctx)
+	if err != nil {
+		slog.Error("capture devices_before", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	deviceSnap := make([]deviceSnapshot, len(devices))
+	for i, d := range devices {
+		deviceSnap[i] = deviceSnapshot{ID: d.ID, Name: d.Name}
+	}
+	var devicesBeforeJSON json.RawMessage
+	devicesBeforeJSON, err = json.Marshal(deviceSnap)
+	if err != nil {
+		slog.Error("marshal devices_before", "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	event := &db.Event{
+		Name:          req.Name,
+		ConfigsBefore: &configsBeforeJSON,
+		ConfigsAfter:  enrichedJSON,
+		DevicesBefore: &devicesBeforeJSON,
+		DevicesAfter:  req.DevicesAfter,
+		ScheduledAt:   req.ScheduledAt,
+		UserID:        claims.UserID,
+	}
 	if err := db.CreateEvent(ctx, event); err != nil {
 		slog.Error("create event", "error", err)
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)

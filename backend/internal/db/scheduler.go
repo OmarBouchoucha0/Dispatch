@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func StartScheduler(ctx context.Context, interval time.Duration) {
@@ -45,18 +48,6 @@ func DeployEvent(ctx context.Context, event Event) error {
 	}
 	defer tx.Rollback(ctx)
 
-	rows, err := tx.Query(
-		ctx,
-		`
-		SELECT c.device_id, COALESCE(d.name, ''), c.name, c.content
-		FROM configs c
-		LEFT JOIN devices d ON d.id = c.device_id
-		`,
-	)
-	if err != nil {
-		return fmt.Errorf("snapshot configs: %w", err)
-	}
-
 	type snapshotRow struct {
 		DeviceID   string          `json:"device_id"`
 		DeviceName string          `json:"device_name"`
@@ -65,33 +56,69 @@ func DeployEvent(ctx context.Context, event Event) error {
 	}
 
 	var snapshot []snapshotRow
-	for rows.Next() {
-		var r snapshotRow
-		if err := rows.Scan(&r.DeviceID, &r.DeviceName, &r.Name, &r.Content); err != nil {
-			rows.Close()
-			return fmt.Errorf("scan snapshot: %w", err)
+	if event.ConfigsBefore != nil && len(*event.ConfigsBefore) > 0 && string(*event.ConfigsBefore) != "null" {
+		if err := json.Unmarshal(*event.ConfigsBefore, &snapshot); err != nil {
+			return fmt.Errorf("parse configs_before: %w", err)
 		}
-		snapshot = append(snapshot, r)
-	}
-	rows.Close()
+	} else {
+		rows, err := tx.Query(
+			ctx,
+			`
+			SELECT c.device_id, COALESCE(d.name, ''), c.name, c.content
+			FROM configs c
+			LEFT JOIN devices d ON d.id = c.device_id
+			`,
+		)
+		if err != nil {
+			return fmt.Errorf("snapshot configs: %w", err)
+		}
 
-	if err := rows.Err(); err != nil {
-		return fmt.Errorf("snapshot rows: %w", err)
+		for rows.Next() {
+			var r snapshotRow
+			if err := rows.Scan(&r.DeviceID, &r.DeviceName, &r.Name, &r.Content); err != nil {
+				rows.Close()
+				return fmt.Errorf("scan snapshot: %w", err)
+			}
+			snapshot = append(snapshot, r)
+		}
+		rows.Close()
+
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("snapshot rows: %w", err)
+		}
 	}
 
-	_, err = tx.Exec(ctx, `DELETE FROM configs`)
-	if err != nil {
-		return fmt.Errorf("delete all configs: %w", err)
-	}
-
-	var after []struct {
+	type configItem struct {
 		DeviceID   string          `json:"device_id"`
 		DeviceName string          `json:"device_name"`
 		Name       string          `json:"name"`
 		Content    json.RawMessage `json:"content"`
 	}
+
+	var after []configItem
 	if err := json.Unmarshal(event.ConfigsAfter, &after); err != nil {
 		return fmt.Errorf("parse configs_after: %w", err)
+	}
+
+	tempToReal, err := applyDeviceChanges(ctx, tx, event)
+	if err != nil {
+		return err
+	}
+
+	if len(tempToReal) > 0 {
+		remapped := make([]configItem, len(after))
+		for i, cfg := range after {
+			if realID, ok := tempToReal[cfg.DeviceID]; ok {
+				cfg.DeviceID = realID
+			}
+			remapped[i] = cfg
+		}
+		after = remapped
+	}
+
+	_, err = tx.Exec(ctx, `DELETE FROM configs`)
+	if err != nil {
+		return fmt.Errorf("delete all configs: %w", err)
 	}
 
 	for _, cfg := range after {
@@ -152,4 +179,73 @@ func DeployEvent(ctx context.Context, event Event) error {
 	}
 
 	return tx.Commit(ctx)
+}
+
+type deviceSnapshot struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func applyDeviceChanges(ctx context.Context, tx pgx.Tx, event Event) (map[string]string, error) {
+	if len(event.DevicesAfter) == 0 || string(event.DevicesAfter) == "null" {
+		return nil, nil
+	}
+
+	var devicesBefore []deviceSnapshot
+	if event.DevicesBefore != nil && len(*event.DevicesBefore) > 0 && string(*event.DevicesBefore) != "null" {
+		if err := json.Unmarshal(*event.DevicesBefore, &devicesBefore); err != nil {
+			return nil, fmt.Errorf("parse devices_before: %w", err)
+		}
+	}
+	var devicesAfter []deviceSnapshot
+	if err := json.Unmarshal(event.DevicesAfter, &devicesAfter); err != nil {
+		return nil, fmt.Errorf("parse devices_after: %w", err)
+	}
+
+	afterByID := make(map[string]deviceSnapshot)
+	for _, d := range devicesAfter {
+		afterByID[d.ID] = d
+	}
+
+	for _, b := range devicesBefore {
+		if _, exists := afterByID[b.ID]; exists {
+			continue
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM devices WHERE id = $1`, b.ID); err != nil {
+			return nil, fmt.Errorf("delete device %s: %w", b.ID, err)
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO logs (user_id, device_id, action) VALUES ($1, $2, $3)`, event.UserID, b.ID, "Deleted"); err != nil {
+			return nil, fmt.Errorf("log delete device %s: %w", b.ID, err)
+		}
+	}
+
+	for _, b := range devicesBefore {
+		a, exists := afterByID[b.ID]
+		if !exists || a.Name == b.Name {
+			continue
+		}
+		if _, err := tx.Exec(ctx, `UPDATE devices SET name = $1 WHERE id = $2`, a.Name, b.ID); err != nil {
+			return nil, fmt.Errorf("rename device %s: %w", b.ID, err)
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO logs (user_id, device_id, action) VALUES ($1, $2, $3)`, event.UserID, b.ID, "Renamed"); err != nil {
+			return nil, fmt.Errorf("log rename device %s: %w", b.ID, err)
+		}
+	}
+
+	tempToReal := make(map[string]string)
+	for _, a := range devicesAfter {
+		if !strings.HasPrefix(a.ID, "local-") {
+			continue
+		}
+		var newID string
+		if err := tx.QueryRow(ctx, `INSERT INTO devices (name) VALUES ($1) RETURNING id`, a.Name).Scan(&newID); err != nil {
+			return nil, fmt.Errorf("create device %s: %w", a.Name, err)
+		}
+		tempToReal[a.ID] = newID
+		if _, err := tx.Exec(ctx, `INSERT INTO logs (user_id, device_id, action) VALUES ($1, $2, $3)`, event.UserID, newID, "Created"); err != nil {
+			return nil, fmt.Errorf("log create device %s: %w", a.Name, err)
+		}
+	}
+
+	return tempToReal, nil
 }

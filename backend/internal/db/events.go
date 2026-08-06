@@ -11,6 +11,8 @@ type Event struct {
 	Name          string
 	ConfigsBefore *json.RawMessage
 	ConfigsAfter  json.RawMessage
+	DevicesBefore *json.RawMessage
+	DevicesAfter  json.RawMessage
 	ScheduledAt   time.Time
 	Status        string
 	CreatedAt     time.Time
@@ -22,12 +24,15 @@ func CreateEvent(ctx context.Context, event *Event) error {
 	return Pool.QueryRow(
 		ctx,
 		`
-		INSERT INTO events (name, configs_after, scheduled_at, user_id)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO events (name, configs_before, configs_after, devices_before, devices_after, scheduled_at, user_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, status
 		`,
 		event.Name,
+		event.ConfigsBefore,
 		event.ConfigsAfter,
+		event.DevicesBefore,
+		event.DevicesAfter,
 		event.ScheduledAt,
 		event.UserID,
 	).Scan(&event.ID, &event.CreatedAt, &event.Status)
@@ -37,7 +42,7 @@ func GetEvents(ctx context.Context) ([]Event, error) {
 	rows, err := Pool.Query(
 		ctx,
 		`
-		SELECT id, name, configs_before, configs_after, scheduled_at,
+		SELECT id, name, configs_before, configs_after, devices_before, devices_after, scheduled_at,
 		       status, created_at, user_id, deployed_at
 		FROM events
 		ORDER BY scheduled_at DESC
@@ -55,6 +60,8 @@ func GetEvents(ctx context.Context) ([]Event, error) {
 			&e.Name,
 			&e.ConfigsBefore,
 			&e.ConfigsAfter,
+			&e.DevicesBefore,
+			&e.DevicesAfter,
 			&e.ScheduledAt,
 			&e.Status,
 			&e.CreatedAt,
@@ -78,7 +85,7 @@ func GetPendingEvents(ctx context.Context) ([]Event, error) {
 	rows, err := Pool.Query(
 		ctx,
 		`
-		SELECT id, name, configs_before, configs_after, scheduled_at,
+		SELECT id, name, configs_before, configs_after, devices_before, devices_after, scheduled_at,
 		       status, created_at, user_id, deployed_at
 		FROM events
 		WHERE status = 'pending' AND scheduled_at <= NOW()
@@ -97,6 +104,8 @@ func GetPendingEvents(ctx context.Context) ([]Event, error) {
 			&e.Name,
 			&e.ConfigsBefore,
 			&e.ConfigsAfter,
+			&e.DevicesBefore,
+			&e.DevicesAfter,
 			&e.ScheduledAt,
 			&e.Status,
 			&e.CreatedAt,
@@ -121,7 +130,7 @@ func GetEventByID(ctx context.Context, id string) (*Event, error) {
 	err := Pool.QueryRow(
 		ctx,
 		`
-		SELECT id, name, configs_before, configs_after, scheduled_at,
+		SELECT id, name, configs_before, configs_after, devices_before, devices_after, scheduled_at,
 		       status, created_at, user_id, deployed_at
 		FROM events
 		WHERE id = $1
@@ -132,6 +141,8 @@ func GetEventByID(ctx context.Context, id string) (*Event, error) {
 		&e.Name,
 		&e.ConfigsBefore,
 		&e.ConfigsAfter,
+		&e.DevicesBefore,
+		&e.DevicesAfter,
 		&e.ScheduledAt,
 		&e.Status,
 		&e.CreatedAt,
