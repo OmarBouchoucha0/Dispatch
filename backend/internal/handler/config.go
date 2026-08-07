@@ -59,7 +59,7 @@ func ListConfigs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ListConfigsByDevice(w http.ResponseWriter, r *http.Request) {
+func ListConfigsByDeviceName(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	name := chi.URLParam(r, "name")

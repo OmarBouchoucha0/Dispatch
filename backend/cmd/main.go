@@ -145,13 +145,17 @@ func mount() http.Handler {
 	})
 
 	r.Route("/config", func(r chi.Router) {
-		r.Use(auth.Middleware, handler.TimezoneMiddleware)
+		r.Get("/{name}", handler.ListConfigsByDeviceName)
 
-		r.Get("/", handler.ListConfigs)
-		r.Post("/", handler.AddConfig)
-		r.Post("/commit", handler.CommitConfigs)
-		r.Put("/rename", handler.RenameConfig)
-		r.Delete("/{id}", handler.DeleteConfig)
+		r.Group(func(r chi.Router) {
+			r.Use(auth.Middleware, handler.TimezoneMiddleware)
+
+			r.Get("/", handler.ListConfigs)
+			r.Post("/", handler.AddConfig)
+			r.Post("/commit", handler.CommitConfigs)
+			r.Put("/rename", handler.RenameConfig)
+			r.Delete("/{id}", handler.DeleteConfig)
+		})
 	})
 
 	r.Route("/device", func(r chi.Router) {
@@ -161,7 +165,6 @@ func mount() http.Handler {
 		r.Post("/", handler.AddDevice)
 		r.Put("/rename", handler.RenameDevice)
 		r.Delete("/", handler.DeleteDevice)
-		r.Get("/{name}", handler.ListConfigsByDevice)
 		r.Put("/{id}", handler.UpdateDevice)
 		r.Delete("/{id}", handler.DeleteDeviceByID)
 	})
