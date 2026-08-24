@@ -22,6 +22,7 @@ type EventDiffProps = {
 type DiffFile = {
   key: string
   deviceID: string
+  deviceName: string | undefined
   name: string
   oldContent: string
   newContent: string
@@ -99,6 +100,7 @@ export function EventDiff({
           files.push({
             key,
             deviceID: before.device_id,
+            deviceName: after.device_name ?? before.device_name,
             name: before.name,
             oldContent: oldStr,
             newContent: newStr,
@@ -107,22 +109,24 @@ export function EventDiff({
         }
       } else if (before && !after) {
         files.push({
-          key,
-          deviceID: before.device_id,
-          name: before.name,
-          oldContent: normalizeContent(before.content),
-          newContent: "",
-          changeType: "removed",
-        })
+            key,
+            deviceID: before.device_id,
+            deviceName: before.device_name,
+            name: before.name,
+            oldContent: normalizeContent(before.content),
+            newContent: "",
+            changeType: "removed",
+          })
       } else if (after && !before) {
         files.push({
-          key,
-          deviceID: after.device_id,
-          name: after.name,
-          oldContent: "",
-          newContent: normalizeContent(after.content),
-          changeType: "added",
-        })
+            key,
+            deviceID: after.device_id,
+            deviceName: after.device_name,
+            name: after.name,
+            oldContent: "",
+            newContent: normalizeContent(after.content),
+            changeType: "added",
+          })
       }
     }
 
@@ -134,7 +138,7 @@ export function EventDiff({
 
     for (const file of diffFiles) {
       const device = devices.find((d) => d.id === file.deviceID)
-      const deviceName = device?.name ?? file.deviceID ?? "Unknown Device"
+      const deviceName = device?.name ?? file.deviceName ?? file.deviceID ?? "Unknown Device"
 
       if (!folderMap.has(deviceName)) {
         folderMap.set(deviceName, {
